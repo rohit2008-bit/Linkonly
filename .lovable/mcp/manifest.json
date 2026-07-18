@@ -1,0 +1,105 @@
+{
+  "version": 1,
+  "sdk_version": "0.23.0",
+  "path": "/mcp",
+  "auth": {
+    "type": "none"
+  },
+  "mcp": {
+    "server": {
+      "name": "linkhub-mcp",
+      "version": "0.1.0",
+      "title": "LinkHub MCP"
+    },
+    "tools": [
+      {
+        "name": "build_profile_url",
+        "title": "Build LinkHub profile URL",
+        "description": "Given a LinkHub username, return the public profile URL a visitor can open to see that user's links.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "username": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 64,
+              "pattern": "^[a-zA-Z0-9_-]+$",
+              "description": "The LinkHub username (the slug after the domain)."
+            },
+            "baseUrl": {
+              "description": "Optional base URL to build against. Defaults to https://linkhub.app.",
+              "type": "string",
+              "format": "uri"
+            }
+          },
+          "required": [
+            "username"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "generate_qr_code_url",
+        "title": "Generate QR code image URL",
+        "description": "Return a public QR code image URL that encodes the given text or link. Useful for turning a LinkHub profile URL into a shareable/printable QR image.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": true
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "data": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 2000,
+              "description": "The text or URL to encode in the QR code."
+            },
+            "size": {
+              "description": "Square image size in pixels. Defaults to 512.",
+              "type": "integer",
+              "minimum": 64,
+              "maximum": 1024
+            }
+          },
+          "required": [
+            "data"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "validate_username",
+        "title": "Validate a LinkHub username",
+        "description": "Check whether a proposed LinkHub username is well-formed (length, allowed characters, not reserved). This is a format check only — it does not verify whether the username is already taken.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "username": {
+              "type": "string",
+              "description": "The proposed username to validate."
+            }
+          },
+          "required": [
+            "username"
+          ]
+        },
+        "outputSchema": null
+      }
+    ]
+  }
+}
