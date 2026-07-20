@@ -186,6 +186,9 @@ function getAiTips(links: any[], user: any): AiTip[] {
 
 export const Route = createFileRoute("/dashboard")({
   component: Dashboard,
+  validateSearch: (search: Record<string, unknown>) => ({
+    tab: (search.tab as string) || "profile",
+  }),
 });
 
 type Tab = "links" | "profile" | "theme" | "qr" | "analytics";
@@ -199,7 +202,8 @@ function Dashboard() {
     return !user.name?.trim() || !user.bio?.trim();
   }, [user]);
 
-  const [tab, setTab] = useState<Tab>("profile");
+  const { tab: initialTab } = Route.useSearch();
+  const [tab, setTab] = useState<Tab>((initialTab as Tab) || "profile");
   const [localTheme, setLocalTheme] = useState<Theme>(user?.theme || defaultTheme);
   const [localName, setLocalName] = useState(user?.name || "");
   const [localBio, setLocalBio] = useState(user?.bio || "");

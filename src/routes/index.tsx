@@ -1,13 +1,23 @@
 import { useState } from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { ArrowRight, BarChart3, Palette, QrCode, Sparkles, Link as LinkIcon, ChevronDown } from "lucide-react";
+import { useAuth } from "@/lib/auth";
 
 export const Route = createFileRoute("/")({
   component: Landing,
 });
 
 function Landing() {
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+
+  const handleLogoClick = (e: React.MouseEvent) => {
+    if (user) {
+      e.preventDefault();
+      navigate({ to: "/dashboard", search: { tab: "profile" } });
+    }
+  };
 
   const faqs = [
     {
@@ -34,7 +44,7 @@ function Landing() {
   return (
     <div className="min-h-screen bg-background">
       <header className="mx-auto flex max-w-6xl items-center justify-between px-6 py-6">
-        <Link to="/" className="flex items-center gap-2 text-lg font-bold" style={{ fontFamily: "var(--font-display)" }}>
+        <Link to="/" onClick={handleLogoClick} className="flex items-center gap-2 text-lg font-bold" style={{ fontFamily: "var(--font-display)" }}>
           <img src="/logo.png" alt="Logo" className="h-8 w-8 object-contain" />
           LinkHub
         </Link>
@@ -248,7 +258,7 @@ function Landing() {
       <footer className="mx-auto max-w-6xl px-6 py-12 border-t-2 border-foreground">
         <div className="grid gap-8 md:grid-cols-4">
           <div className="md:col-span-2">
-            <Link to="/" className="flex items-center gap-2 text-xl font-bold" style={{ fontFamily: "var(--font-display)" }}>
+            <Link to="/" onClick={handleLogoClick} className="flex items-center gap-2 text-xl font-bold" style={{ fontFamily: "var(--font-display)" }}>
               <img src="/logo.png" alt="Logo" className="h-8 w-8 object-contain" />
               LinkOnly
             </Link>
