@@ -19,6 +19,33 @@ const getCloudinarySignature = createServerFn({ method: "GET" })
     return { signature };
   });
 
+// Server function to permanently delete an image from Cloudinary by its public_id
+const deleteCloudinaryImage = createServerFn({ method: "POST" })
+  .validator((publicId: string) => publicId)
+  .handler(async ({ data: publicId }) => {
+    const cloudName = process.env.VITE_CLOUDINARY_CLOUD_NAME || "sovllrgj";
+    const apiKey = process.env.VITE_CLOUDINARY_API_KEY || "332665428766442";
+    const apiSecret = process.env.CLOUDINARY_API_SECRET || "a734KvYgyLfnDqcxRBiaESOusuM";
+    const timestamp = Math.round(Date.now() / 1000).toString();
+
+    const crypto = await import("crypto");
+    const signatureStr = `public_id=${publicId}&timestamp=${timestamp}${apiSecret}`;
+    const signature = crypto.createHash("sha1").update(signatureStr).digest("hex");
+
+    const formData = new FormData();
+    formData.append("public_id", publicId);
+    formData.append("api_key", apiKey);
+    formData.append("timestamp", timestamp);
+    formData.append("signature", signature);
+
+    await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/destroy`, {
+      method: "POST",
+      body: formData,
+    });
+
+    return { ok: true };
+  });
+
 const askOpenRouter = createServerFn({ method: "POST" })
   .validator((prompt: string) => prompt)
   .handler(async ({ data: prompt }) => {
@@ -1161,14 +1188,28 @@ function ProfileTab({ user, update, localName, setLocalName, localBio, setLocalB
     { value: "dirt",       label: "Rubik Dirt — Muddy 3D",         preview: "Rubik Dirt",      isPremium: true },
   ] as const;
 
+  // Extracts Cloudinary public_id from a secure_url
+  const getCloudinaryPublicId = (url: string): string | null => {
+    try {
+      // e.g. https://res.cloudinary.com/<cloud>/image/upload/v1234/profile_pics/abc123.jpg
+      const match = url.match(/\/upload\/(?:v\d+\/)?(.+?)(?:\.[a-z]+)?$/);
+      return match ? match[1] : null;
+    } catch {
+      return null;
+    }
+  };
+
   const onUpload = async (f: File) => {
     setUploadingAvatar(true);
     const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || "sovllrgj";
     const apiKey = import.meta.env.VITE_CLOUDINARY_API_KEY || "332665428766442";
     const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET || "profile_pics";
-    
+
+    // Capture old avatar URL before uploading new one
+    const oldAvatarUrl = user!.avatar || "";
+
     const timestamp = Math.round(new Date().getTime() / 1000).toString();
-    
+
     let signature = "";
     try {
       const res = await getCloudinarySignature({ data: timestamp });
@@ -1192,7 +1233,17 @@ function ProfileTab({ user, update, localName, setLocalName, localBio, setLocalB
 
       if (res.ok) {
         const data = await res.json();
+        // Save new avatar first
         await update({ avatar: data.secure_url });
+        // Then permanently delete old image from Cloudinary if it existed
+        if (oldAvatarUrl) {
+          const oldPublicId = getCloudinaryPublicId(oldAvatarUrl);
+          if (oldPublicId) {
+            deleteCloudinaryImage({ data: oldPublicId }).catch((err) =>
+              console.error("Failed to delete old Cloudinary image:", err)
+            );
+          }
+        }
       } else {
         const errorText = await res.text();
         console.error("Cloudinary upload failed:", errorText);
@@ -1262,7 +1313,21 @@ function ProfileTab({ user, update, localName, setLocalName, localBio, setLocalB
           <p className="text-xs text-muted-foreground">Click the image to choose a photo. PNG, JPG or WebP.</p>
           {user!.avatar && (
             <button 
-              onClick={(e) => { e.stopPropagation(); update({ avatar: "" }); }} 
+              onClick={(e) => {
+                e.stopPropagation();
+                const oldUrl = user!.avatar || "";
+                update({ avatar: "" });
+                // Permanently delete old image from Cloudinary
+                if (oldUrl) {
+                  const match = oldUrl.match(/\/upload\/(?:v\d+\/)?(.+?)(?:\.[a-z]+)?$/);
+                  const publicId = match ? match[1] : null;
+                  if (publicId) {
+                    deleteCloudinaryImage({ data: publicId }).catch((err) =>
+                      console.error("Failed to delete Cloudinary image:", err)
+                    );
+                  }
+                }
+              }} 
               className="mt-1 self-center sm:self-start text-xs font-semibold text-destructive hover:underline"
             >
               Remove photo
