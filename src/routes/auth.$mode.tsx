@@ -190,7 +190,7 @@ function AuthPage() {
                   value={username} 
                   onChange={setUsername} 
                   placeholder="harsh" 
-                  prefix="linkonly.app/" 
+                  prefix="linkonly.in/" 
                   error={fieldErrors.username} 
                   status={usernameStatus}
                 />
