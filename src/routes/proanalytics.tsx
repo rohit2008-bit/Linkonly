@@ -273,11 +273,11 @@ function ProAnalyticsPage() {
                 {/* Dots for Views */}
                 {activeChartData.map((d, i) => {
                   const x = 40 + i * 70;
-                  const y = 200 - (d.views / maxVal) * 150;
+                  const vy = 200 - (d.views / maxVal) * 150;
                   return (
                     <g key={`v-${i}`}>
-                      <circle cx={x} cy={y} r="5" className="fill-card stroke-[#10b981] stroke-[3]" />
-                      <text x={x} y={y - 10} className="text-[10px] font-bold fill-foreground" textAnchor="middle">{formatCompactNumber(d.views)}</text>
+                      <circle cx={x} cy={vy} r="5" className="fill-card stroke-[#10b981] stroke-[3]" />
+                      <text x={x} y={vy - 10} className="text-[11px] font-extrabold fill-[#10b981]" textAnchor="middle">{formatCompactNumber(d.views)}</text>
                     </g>
                   );
                 })}
@@ -285,11 +285,14 @@ function ProAnalyticsPage() {
                 {/* Dots for Clicks */}
                 {activeChartData.map((d, i) => {
                   const x = 40 + i * 70;
-                  const y = 200 - (d.clicks / maxVal) * 150;
+                  const cy = 200 - (d.clicks / maxVal) * 150;
+                  const vy = 200 - (d.views / maxVal) * 150;
+                  const isClose = Math.abs(vy - cy) < 25;
+                  const clickY = isClose ? cy + 18 : cy - 10;
                   return (
                     <g key={`c-${i}`}>
-                      <circle cx={x} cy={y} r="5" className="fill-card stroke-[#3b82f6] stroke-[3]" />
-                      <text x={x} y={y - 10} className="text-[10px] font-bold fill-foreground" textAnchor="middle">{formatCompactNumber(d.clicks)}</text>
+                      <circle cx={x} cy={cy} r="5" className="fill-card stroke-[#3b82f6] stroke-[3]" />
+                      <text x={x} y={clickY} className="text-[11px] font-extrabold fill-[#3b82f6]" textAnchor="middle">{formatCompactNumber(d.clicks)}</text>
                     </g>
                   );
                 })}
