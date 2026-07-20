@@ -695,28 +695,7 @@ function Dashboard() {
             ))}
           </div>
         </div>
-        <div className="mt-4">
-          <p className="mb-2 text-sm font-medium">Font style</p>
-          <div className="flex flex-wrap gap-2">
-            {([
-              { value: "sans", label: "Sans" },
-              { value: "display", label: "Display" },
-              { value: "italic", label: "Italic" },
-              { value: "bebas", label: "Bebas Neue" },
-              { value: "galindo", label: "Galindo" }
-            ] as const).map((f) => (
-              <button
-                key={f.value}
-                type="button"
-                onClick={() => set({ font: f.value })}
-                className={`rounded-full border-2 border-foreground px-4 py-2 text-sm font-semibold ${t.font === f.value ? "bg-foreground text-background" : "bg-card"}`}
-                style={getFontFamily(f.value)}
-              >
-                {f.label}
-              </button>
-            ))}
-          </div>
-        </div>
+
         {!user!.premium && (
           <div className="mt-6 flex items-center justify-between gap-3 rounded-2xl border-2 border-foreground bg-accent/30 p-4">
             <div>
@@ -1112,8 +1091,9 @@ function ProfileTab({ user, update, localName, setLocalName, localBio, setLocalB
     if (!cleanBio) {
       return "Bio cannot be empty or blank.";
     }
-    if (!/^[a-zA-Z0-9\s.,!?'"\-()]+$/.test(cleanBio)) {
-      return "Bio can only contain letters, numbers, spaces, and standard punctuation (no special characters like @, #, $, etc.).";
+    // Allow letters, numbers, spaces, standard punctuation, and emojis (everything except dangerous shell/code chars)
+    if (/[<>{};`\\]/.test(cleanBio)) {
+      return "Bio cannot contain HTML or code characters (< > { } ; ` \\).";
     }
 
     return "";
@@ -1133,11 +1113,21 @@ function ProfileTab({ user, update, localName, setLocalName, localBio, setLocalB
   }, []);
 
   const fontOptions = [
-    { value: "sans", label: "Default Sans (Inter)" },
-    { value: "display", label: "Display (Space Grotesk)" },
-    { value: "italic", label: "Italic (Playfair Display)" },
-    { value: "bebas", label: "Bebas Neue" },
-    { value: "galindo", label: "Galindo" }
+    { value: "sans",       label: "Inter — Clean & Modern",       preview: "Inter" },
+    { value: "display",    label: "Space Grotesk — Techy Bold",    preview: "Space Grotesk" },
+    { value: "poppins",    label: "Poppins — Friendly Round",      preview: "Poppins" },
+    { value: "montserrat", label: "Montserrat — Elegant Strong",   preview: "Montserrat" },
+    { value: "raleway",    label: "Raleway — Stylish Thin",        preview: "Raleway" },
+    { value: "nunito",     label: "Nunito — Soft & Playful",       preview: "Nunito" },
+    { value: "lato",       label: "Lato — Professional Light",     preview: "Lato" },
+    { value: "oswald",     label: "Oswald — Condensed Impact",     preview: "Oswald" },
+    { value: "italic",     label: "Playfair Display — Italic Serif",preview: "Playfair Display" },
+    { value: "bebas",      label: "Bebas Neue — All Caps Bold",    preview: "Bebas Neue" },
+    { value: "galindo",    label: "Galindo — Retro Pop",           preview: "Galindo" },
+    { value: "righteous",  label: "Righteous — Groovy Display",    preview: "Righteous" },
+    { value: "pacifico",   label: "Pacifico — Surf Script",        preview: "Pacifico" },
+    { value: "dancing",    label: "Dancing Script — Handwritten",  preview: "Dancing Script" },
+    { value: "lobster",    label: "Lobster — Curvy Script",        preview: "Lobster" },
   ] as const;
 
   const onUpload = async (f: File) => {
@@ -1394,14 +1384,14 @@ function ProfileTab({ user, update, localName, setLocalName, localBio, setLocalB
               className="flex w-full items-center justify-between rounded-full border-2 border-foreground bg-card px-5 py-2.5 text-sm font-semibold outline-none cursor-pointer focus:ring-2 focus:ring-ring"
               style={getFontFamily(localTheme.nameFont || localTheme.font)}
             >
-              <span>{fontOptions.find((o) => o.value === (localTheme.nameFont || localTheme.font))?.label || "Default Sans (Inter)"}</span>
+              <span>{fontOptions.find((o) => o.value === (localTheme.nameFont || localTheme.font))?.preview || "Inter"}</span>
               <span className={`text-xs transition-transform duration-200 ${isFontDropdownOpen ? "rotate-180" : ""}`}>
                 ▼
               </span>
             </button>
             
             {isFontDropdownOpen && (
-              <div className="absolute left-0 right-0 mt-2 rounded-2xl border-2 border-foreground bg-card p-1.5 shadow-[0_4px_0_0_theme(colors.foreground)] z-50 animate-in fade-in slide-in-from-top-2 duration-150">
+              <div className="absolute left-0 right-0 mt-2 max-h-64 overflow-y-auto rounded-2xl border-2 border-foreground bg-card p-1.5 shadow-[0_4px_0_0_theme(colors.foreground)] z-50 animate-in fade-in slide-in-from-top-2 duration-150">
                 {fontOptions.map((opt) => (
                   <button
                     key={opt.value}
@@ -1410,12 +1400,12 @@ function ProfileTab({ user, update, localName, setLocalName, localBio, setLocalB
                       setLocalTheme({ ...localTheme, nameFont: opt.value });
                       setIsFontDropdownOpen(false);
                     }}
-                    className={`flex w-full items-center rounded-xl px-4 py-2.5 text-sm font-semibold hover:bg-muted transition-colors ${
-                      (localTheme.nameFont || localTheme.font) === opt.value ? "bg-muted text-foreground" : "text-foreground"
+                    className={`flex w-full flex-col rounded-xl px-4 py-2 hover:bg-muted transition-colors ${
+                      (localTheme.nameFont || localTheme.font) === opt.value ? "bg-muted" : ""
                     }`}
-                    style={getFontFamily(opt.value)}
                   >
-                    {opt.label}
+                    <span className="text-sm font-semibold" style={getFontFamily(opt.value)}>{opt.preview}</span>
+                    <span className="text-[10px] text-muted-foreground mt-0.5" style={{ fontFamily: "inherit" }}>{opt.label.split(" — ")[1] || ""}</span>
                   </button>
                 ))}
               </div>
@@ -1439,14 +1429,14 @@ function ProfileTab({ user, update, localName, setLocalName, localBio, setLocalB
               className="flex w-full items-center justify-between rounded-full border-2 border-foreground bg-card px-5 py-2.5 text-sm font-semibold outline-none cursor-pointer focus:ring-2 focus:ring-ring"
               style={getFontFamily(localTheme.bioFont || localTheme.font)}
             >
-              <span>{fontOptions.find((o) => o.value === (localTheme.bioFont || localTheme.font))?.label || "Default Sans (Inter)"}</span>
+              <span>{fontOptions.find((o) => o.value === (localTheme.bioFont || localTheme.font))?.preview || "Inter"}</span>
               <span className={`text-xs transition-transform duration-200 ${isBioFontDropdownOpen ? "rotate-180" : ""}`}>
                 ▼
               </span>
             </button>
             
             {isBioFontDropdownOpen && (
-              <div className="absolute left-0 right-0 mt-2 rounded-2xl border-2 border-foreground bg-card p-1.5 shadow-[0_4px_0_0_theme(colors.foreground)] z-50 animate-in fade-in slide-in-from-top-2 duration-150">
+              <div className="absolute left-0 right-0 mt-2 max-h-64 overflow-y-auto rounded-2xl border-2 border-foreground bg-card p-1.5 shadow-[0_4px_0_0_theme(colors.foreground)] z-50 animate-in fade-in slide-in-from-top-2 duration-150">
                 {fontOptions.map((opt) => (
                   <button
                     key={opt.value}
@@ -1455,12 +1445,12 @@ function ProfileTab({ user, update, localName, setLocalName, localBio, setLocalB
                       setLocalTheme({ ...localTheme, bioFont: opt.value });
                       setIsBioFontDropdownOpen(false);
                     }}
-                    className={`flex w-full items-center rounded-xl px-4 py-2.5 text-sm font-semibold hover:bg-muted transition-colors ${
-                      (localTheme.bioFont || localTheme.font) === opt.value ? "bg-muted text-foreground" : "text-foreground"
+                    className={`flex w-full flex-col rounded-xl px-4 py-2 hover:bg-muted transition-colors ${
+                      (localTheme.bioFont || localTheme.font) === opt.value ? "bg-muted" : ""
                     }`}
-                    style={getFontFamily(opt.value)}
                   >
-                    {opt.label}
+                    <span className="text-sm font-semibold" style={getFontFamily(opt.value)}>{opt.preview}</span>
+                    <span className="text-[10px] text-muted-foreground mt-0.5" style={{ fontFamily: "inherit" }}>{opt.label.split(" — ")[1] || ""}</span>
                   </button>
                 ))}
               </div>
