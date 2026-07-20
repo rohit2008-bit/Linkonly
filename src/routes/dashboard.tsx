@@ -1393,10 +1393,13 @@ function ProfileTab({ user, update, localName, setLocalName, localBio, setLocalB
 
       <div className="mt-4 grid gap-4 sm:grid-cols-2">
         <Labeled label="Display Name Font">
-          <div ref={fontDropdownRef} className="relative z-10">
+          <div ref={fontDropdownRef} className={`relative ${isFontDropdownOpen ? "z-40" : "z-20"}`}>
             <button
               type="button"
-              onClick={() => setIsFontDropdownOpen(!isFontDropdownOpen)}
+              onClick={() => {
+                if (!isFontDropdownOpen) setIsBioFontDropdownOpen(false);
+                setIsFontDropdownOpen(!isFontDropdownOpen);
+              }}
               className="flex w-full items-center justify-between rounded-full border-2 border-foreground bg-card px-5 py-2.5 text-sm font-semibold outline-none cursor-pointer focus:ring-2 focus:ring-ring"
               style={getFontFamily(localTheme.nameFont || localTheme.font)}
             >
@@ -1407,7 +1410,7 @@ function ProfileTab({ user, update, localName, setLocalName, localBio, setLocalB
             </button>
             
             {isFontDropdownOpen && (
-              <div className="absolute left-0 right-0 mt-2 max-h-64 overflow-y-auto rounded-2xl border-2 border-foreground bg-card p-1.5 shadow-[0_4px_0_0_theme(colors.foreground)] z-50 animate-in fade-in slide-in-from-top-2 duration-150">
+              <div className="absolute left-0 right-0 mt-2 max-h-52 overflow-y-auto rounded-2xl border-2 border-foreground bg-card p-1.5 shadow-[0_6px_0_0_theme(colors.foreground)] z-[100] animate-in fade-in slide-in-from-top-2 duration-150">
                 {fontOptions.map((opt) => (
                   <button
                     key={opt.value}
@@ -1457,10 +1460,13 @@ function ProfileTab({ user, update, localName, setLocalName, localBio, setLocalB
         </Labeled>
 
         <Labeled label="Bio Font">
-          <div ref={bioFontDropdownRef} className="relative z-10">
+          <div ref={bioFontDropdownRef} className={`relative ${isBioFontDropdownOpen ? "z-40" : "z-10"}`}>
             <button
               type="button"
-              onClick={() => setIsBioFontDropdownOpen(!isBioFontDropdownOpen)}
+              onClick={() => {
+                if (!isBioFontDropdownOpen) setIsFontDropdownOpen(false);
+                setIsBioFontDropdownOpen(!isBioFontDropdownOpen);
+              }}
               className="flex w-full items-center justify-between rounded-full border-2 border-foreground bg-card px-5 py-2.5 text-sm font-semibold outline-none cursor-pointer focus:ring-2 focus:ring-ring"
               style={getFontFamily(localTheme.bioFont || localTheme.font)}
             >
@@ -1471,7 +1477,7 @@ function ProfileTab({ user, update, localName, setLocalName, localBio, setLocalB
             </button>
             
             {isBioFontDropdownOpen && (
-              <div className="absolute left-0 right-0 mt-2 max-h-64 overflow-y-auto rounded-2xl border-2 border-foreground bg-card p-1.5 shadow-[0_4px_0_0_theme(colors.foreground)] z-50 animate-in fade-in slide-in-from-top-2 duration-150">
+              <div className="absolute left-0 right-0 mt-2 max-h-52 overflow-y-auto rounded-2xl border-2 border-foreground bg-card p-1.5 shadow-[0_6px_0_0_theme(colors.foreground)] z-[100] animate-in fade-in slide-in-from-top-2 duration-150">
                 {fontOptions.map((opt) => (
                   <button
                     key={opt.value}
