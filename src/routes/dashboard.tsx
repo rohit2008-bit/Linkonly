@@ -582,7 +582,7 @@ function Dashboard() {
                     </div>
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <span className="rounded-full bg-muted px-2 py-1 text-xs font-semibold">{l.clicks} clicks</span>
+                    <span className="rounded-full bg-muted px-2 py-1 text-xs font-semibold">{formatCompactNumber(l.clicks)} clicks</span>
                     <a href={l.url} target="_blank" rel="noreferrer" className="grid h-8 w-8 place-items-center rounded-full hover:bg-muted"><ExternalLink className="h-4 w-4" /></a>
                     <button onClick={() => remove(l.id)} className="grid h-8 w-8 place-items-center rounded-full hover:bg-destructive/10 hover:text-destructive cursor-pointer"><Trash2 className="h-4 w-4" /></button>
                   </div>
