@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { QRCodeCanvas } from "qrcode.react";
 import { BarChart3, Copy, ExternalLink, GripVertical, LogOut, Palette, Plus, QrCode, Trash2, Crown, Check, Eye, Pencil, User, Globe, FileText, ChevronRight, Sparkles, Lock } from "lucide-react";
 import { useAuth } from "@/lib/auth";
-import { newId, defaultTheme, getFontFamily, type LinkItem, type Theme, type Profile } from "@/lib/store";
+import { newId, defaultTheme, getFontFamily, formatCompactNumber, type LinkItem, type Theme, type Profile } from "@/lib/store";
 import { createServerFn } from "@tanstack/react-start";
 
 const getCloudinarySignature = createServerFn({ method: "GET" })
@@ -761,27 +761,49 @@ function Dashboard() {
   }
 
   function AnalyticsTab() {
-    const totalClicks = useMemo(() => user!.links.reduce((s, l) => s + (l.clicks || 0), 0), [user]);
-    const top = useMemo(() => [...user!.links].sort((a, b) => b.clicks - a.clicks).slice(0, 5), [user]);
+    const [demoMode, setDemoMode] = useState(false);
+    const rawTotalClicks = useMemo(() => user!.links.reduce((s, l) => s + (l.clicks || 0), 0), [user]);
+    const rawTop = useMemo(() => [...user!.links].sort((a, b) => b.clicks - a.clicks).slice(0, 5), [user]);
+
+    const viewsCount = demoMode ? 15400 : user!.views;
+    const totalClicks = demoMode ? 4200 : rawTotalClicks;
+    const topLinks = demoMode ? [
+      { id: "demo-1", title: "My Portfolio Website", clicks: 2300 },
+      { id: "demo-2", title: "Instagram Profile", clicks: 1200 },
+      { id: "demo-3", title: "YouTube Channel", clicks: 450 },
+      { id: "demo-4", title: "GitHub Projects", clicks: 250 },
+    ] : rawTop;
+
     return (
       <Card>
-        <SectionTitle title="Analytics" subtitle="Real numbers from your public profile." />
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <SectionTitle title="Analytics" subtitle="Real numbers from your public profile." />
+          <button
+            onClick={() => setDemoMode(!demoMode)}
+            className={`inline-flex items-center gap-1.5 rounded-full border-2 border-foreground px-3 py-1 text-xs font-bold transition-all shadow-[2px_2px_0_0_theme(colors.foreground)] hover:-translate-y-0.5 ${
+              demoMode ? "bg-amber-400 text-foreground" : "bg-card hover:bg-muted"
+            }`}
+          >
+            <Sparkles className="h-3.5 w-3.5" /> ⚡ Demo: {demoMode ? "15.4k ON" : "OFF"}
+          </button>
+        </div>
+
         <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
-          <Stat label="Profile views" value={user!.views} />
+          <Stat label="Profile views" value={viewsCount} />
           <Stat label="Total clicks" value={totalClicks} />
           <Stat label="Links" value={user!.links.length} />
         </div>
         <div className="mt-6">
           <p className="mb-2 text-sm font-semibold">Top links</p>
-          {top.length === 0 && <p className="text-sm text-muted-foreground">No clicks yet. Share your link to get started.</p>}
+          {topLinks.length === 0 && <p className="text-sm text-muted-foreground">No clicks yet. Share your link to get started.</p>}
           <div className="space-y-2">
-            {top.map((l) => {
+            {topLinks.map((l) => {
               const pct = totalClicks ? Math.round((l.clicks / totalClicks) * 100) : 0;
               return (
                 <div key={l.id} className="rounded-2xl border-2 border-foreground bg-card p-3">
                   <div className="flex items-center justify-between gap-3 text-sm">
                     <span className="truncate font-semibold">{l.title}</span>
-                    <span className="text-xs text-muted-foreground">{l.clicks} · {pct}%</span>
+                    <span className="text-xs font-bold text-muted-foreground">{formatCompactNumber(l.clicks)} clicks · {pct}%</span>
                   </div>
                   <div className="mt-2 h-2 overflow-hidden rounded-full bg-muted">
                     <div className="h-full bg-foreground" style={{ width: `${pct}%` }} />
@@ -928,11 +950,11 @@ function ColorField({ label, value, onChange, disabled }: { label: string; value
     </Labeled>
   );
 }
-function Stat({ label, value }: { label: string; value: number }) {
+function Stat({ label, value }: { label: string; value: number | string }) {
   return (
     <div className="rounded-2xl border-2 border-foreground bg-card p-4">
       <p className="text-xs text-muted-foreground">{label}</p>
-      <p className="mt-1 text-2xl font-bold">{value}</p>
+      <p className="mt-1 text-2xl font-bold">{typeof value === "number" ? formatCompactNumber(value) : value}</p>
     </div>
   );
 }

@@ -7,6 +7,19 @@ export type LinkItem = {
   clicks: number;
 };
 
+export function formatCompactNumber(num: number): string {
+  if (num === null || num === undefined || isNaN(num)) return "0";
+  if (num >= 1_000_000) {
+    const val = num / 1_000_000;
+    return (val % 1 === 0 ? val.toFixed(0) : val.toFixed(1).replace(/\.0$/, "")) + "m";
+  }
+  if (num >= 1_000) {
+    const val = num / 1_000;
+    return (val % 1 === 0 ? val.toFixed(0) : val.toFixed(1).replace(/\.0$/, "")) + "k";
+  }
+  return num.toString();
+}
+
 export type Theme = {
   bg: string;
   card: string;
