@@ -1065,6 +1065,7 @@ function ProfileTab({ user, update, localName, setLocalName, localBio, setLocalB
   const [aiKeywords, setAiKeywords] = useState("");
   const [generatingAiBio, setGeneratingAiBio] = useState(false);
   const [aiError, setAiError] = useState("");
+  const [aiSuccess, setAiSuccess] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
@@ -1352,12 +1353,15 @@ function ProfileTab({ user, update, localName, setLocalName, localBio, setLocalB
                   onClick={async () => {
                     setGeneratingAiBio(true);
                     setAiError("");
+                    setAiSuccess(false);
                     try {
                       const res = await askOpenRouter({
                         data: `Write a short, engaging, and professional link-in-bio description (maximum 150 characters, no hashtags, no emojis except maybe 1 context-appropriate one) for someone who is: ${aiKeywords.trim()}`
                       });
                       if (res.success && res.text) {
                         setLocalBio(res.text.trim().slice(0, 200));
+                        setAiSuccess(true);
+                        setTimeout(() => setAiSuccess(false), 5000);
                       } else {
                         setAiError(res.error || "Generation failed.");
                       }
@@ -1381,6 +1385,13 @@ function ProfileTab({ user, update, localName, setLocalName, localBio, setLocalB
                 <p className="text-[10px] font-semibold text-muted-foreground animate-pulse">
                   ⏳ Generating... it will take few minutes
                 </p>
+              )}
+
+              {aiSuccess && (
+                <div className="flex items-center gap-1.5 rounded-full border-2 border-emerald-600 bg-emerald-50 px-3 py-1 text-xs font-black text-emerald-700 shadow-[2px_2px_0_0_theme(colors.foreground)] animate-bounce w-fit">
+                  <Check className="h-4 w-4 stroke-[3] text-emerald-600" />
+                  <span>Generation successful!</span>
+                </div>
               )}
 
               {aiError && (
