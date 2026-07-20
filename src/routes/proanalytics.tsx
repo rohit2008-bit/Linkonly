@@ -228,7 +228,7 @@ function ProAnalyticsPage() {
             
             {/* SVG Line Chart */}
             <div className="w-full">
-              <svg viewBox="0 0 500 250" className="w-full overflow-visible">
+              <svg viewBox="0 0 500 260" className="w-full overflow-visible">
                 {/* Horizontal grid lines */}
                 {[0, 0.25, 0.5, 0.75, 1].map((ratio, idx) => {
                   const y = 200 - ratio * 150;
@@ -244,11 +244,11 @@ function ProAnalyticsPage() {
                 {/* X axis line */}
                 <line x1="40" y1="200" x2="480" y2="200" stroke="var(--color-foreground)" strokeWidth="2" />
                 
-                {/* X axis labels */}
+                {/* X axis labels (Day names placed cleanly below numbers) */}
                 {activeChartData.map((d, idx) => {
                   const x = 40 + idx * 70;
                   return (
-                    <text key={idx} x={x} y="220" className="text-[11px] font-bold fill-muted-foreground" textAnchor="middle">
+                    <text key={idx} x={x} y="242" className="text-[11px] font-bold fill-muted-foreground" textAnchor="middle">
                       {d.day}
                     </text>
                   );
@@ -288,7 +288,7 @@ function ProAnalyticsPage() {
                   const cy = 200 - (d.clicks / maxVal) * 150;
                   const vy = 200 - (d.views / maxVal) * 150;
                   const isClose = Math.abs(vy - cy) < 25;
-                  const clickY = isClose ? cy + 18 : cy - 10;
+                  const clickY = isClose ? cy + 15 : cy - 10;
                   return (
                     <g key={`c-${i}`}>
                       <circle cx={x} cy={cy} r="5" className="fill-card stroke-[#3b82f6] stroke-[3]" />
