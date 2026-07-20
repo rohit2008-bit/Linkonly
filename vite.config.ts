@@ -15,4 +15,7 @@ export default defineConfig({
     tailwindcss(),
     nitro(),
   ],
+  build: {
+    chunkSizeWarningLimit: 1000,
+  },
 });
