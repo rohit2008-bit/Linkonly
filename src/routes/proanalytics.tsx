@@ -46,8 +46,6 @@ function ProAnalyticsPage() {
   const totalViews = user?.views || 0;
   const totalClicks = useMemo(() => links.reduce((sum, l) => sum + (l.clicks || 0), 0) || 0, [links]);
 
-  const [demoMode, setDemoMode] = useState(false);
-
   // 1st chart data: Views vs Clicks (Mon - Sun)
   const chartData = useMemo(() => {
     const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
@@ -69,18 +67,7 @@ function ProAnalyticsPage() {
     return dayMap;
   }, [logs]);
 
-  const demoChartData = [
-    { day: "Mon", views: 1200, clicks: 350 },
-    { day: "Tue", views: 3500, clicks: 920 },
-    { day: "Wed", views: 8200, clicks: 2100 },
-    { day: "Thu", views: 15400, clicks: 4200 },
-    { day: "Fri", views: 28000, clicks: 7500 },
-    { day: "Sat", views: 45000, clicks: 12800 },
-    { day: "Sun", views: 120000, clicks: 34000 },
-  ];
-
-  const activeChartData = demoMode ? demoChartData : chartData;
-  const maxVal = Math.max(...activeChartData.map((d) => d.views), 20);
+  const maxVal = Math.max(...chartData.map((d) => d.views), 20);
 
   // 2nd chart data: CTR per link
   const slices = useMemo(() => {
@@ -193,7 +180,7 @@ function ProAnalyticsPage() {
         )}
 
         {/* Header bar */}
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b-2 border-foreground bg-card p-4 rounded-2xl mb-6 shadow-[0_4px_0_0_theme(colors.foreground)]">
+        <div className="flex items-center justify-between border-b-2 border-foreground bg-card p-4 rounded-2xl mb-6 shadow-[0_4px_0_0_theme(colors.foreground)]">
           <div className="flex items-center gap-2">
             <BarChart3 className="h-5 w-5 text-primary" />
             <h1 className="text-xl font-bold">Pro Analytics</h1>
@@ -201,22 +188,12 @@ function ProAnalyticsPage() {
               <Crown className="h-3 w-3 fill-amber-500 text-amber-500" /> PRO
             </span>
           </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setDemoMode(!demoMode)}
-              className={`inline-flex items-center gap-1.5 rounded-full border-2 border-foreground px-3.5 py-2 text-xs font-bold transition-all shadow-[2px_2px_0_0_theme(colors.foreground)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-none ${
-                demoMode ? "bg-amber-400 text-foreground" : "bg-card hover:bg-muted"
-              }`}
-            >
-              <Sparkles className="h-3.5 w-3.5" /> ⚡ Demo: {demoMode ? "120k ON" : "OFF"}
-            </button>
-            <Link
-              to="/dashboard"
-              className="inline-flex items-center gap-1 rounded-full border-2 border-foreground bg-card px-4 py-2 text-xs font-bold hover:bg-muted transition-transform hover:-translate-y-0.5"
-            >
-              <ChevronLeft className="h-4 w-4" /> Back to Dashboard
-            </Link>
-          </div>
+          <Link
+            to="/dashboard"
+            className="inline-flex items-center gap-1 rounded-full border-2 border-foreground bg-card px-4 py-2 text-xs font-bold hover:bg-muted transition-transform hover:-translate-y-0.5"
+          >
+            <ChevronLeft className="h-4 w-4" /> Back to Dashboard
+          </Link>
         </div>
 
         {/* Dashboard Grid */}
@@ -245,7 +222,7 @@ function ProAnalyticsPage() {
                 <line x1="40" y1="200" x2="480" y2="200" stroke="var(--color-foreground)" strokeWidth="2" />
                 
                 {/* X axis labels (Day names placed cleanly below numbers) */}
-                {activeChartData.map((d, idx) => {
+                {chartData.map((d, idx) => {
                   const x = 40 + idx * 70;
                   return (
                     <text key={idx} x={x} y="242" className="text-[11px] font-bold fill-muted-foreground" textAnchor="middle">
@@ -259,7 +236,7 @@ function ProAnalyticsPage() {
                   fill="none"
                   stroke="#10b981"
                   strokeWidth="3.5"
-                  points={activeChartData.map((d, i) => `${40 + i * 70},${200 - (d.views / maxVal) * 150}`).join(" ")}
+                  points={chartData.map((d, i) => `${40 + i * 70},${200 - (d.views / maxVal) * 150}`).join(" ")}
                 />
 
                 {/* Polyline for Clicks */}
@@ -267,11 +244,11 @@ function ProAnalyticsPage() {
                   fill="none"
                   stroke="#3b82f6"
                   strokeWidth="3.5"
-                  points={activeChartData.map((d, i) => `${40 + i * 70},${200 - (d.clicks / maxVal) * 150}`).join(" ")}
+                  points={chartData.map((d, i) => `${40 + i * 70},${200 - (d.clicks / maxVal) * 150}`).join(" ")}
                 />
 
                 {/* Dots for Views */}
-                {activeChartData.map((d, i) => {
+                {chartData.map((d, i) => {
                   const x = 40 + i * 70;
                   const vy = 200 - (d.views / maxVal) * 150;
                   return (
@@ -283,7 +260,7 @@ function ProAnalyticsPage() {
                 })}
 
                 {/* Dots for Clicks */}
-                {activeChartData.map((d, i) => {
+                {chartData.map((d, i) => {
                   const x = 40 + i * 70;
                   const cy = 200 - (d.clicks / maxVal) * 150;
                   const vy = 200 - (d.views / maxVal) * 150;
