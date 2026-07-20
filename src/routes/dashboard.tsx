@@ -1333,7 +1333,23 @@ function ProfileTab({ user, update, localName, setLocalName, localBio, setLocalB
               Remove photo
             </button>
           )}
-          <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files?.[0] && onUpload(e.target.files[0])} />
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (!file) return;
+              const MAX_SIZE_MB = 5;
+              if (file.size > MAX_SIZE_MB * 1024 * 1024) {
+                alert(`Image too large! Please choose a file under ${MAX_SIZE_MB}MB.\n\nYour file: ${(file.size / (1024 * 1024)).toFixed(1)}MB`);
+                e.target.value = ""; // reset so same file can retrigger if user picks another
+                return;
+              }
+              onUpload(file);
+            }}
+          />
         </div>
       </div>
 
