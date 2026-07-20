@@ -94,6 +94,17 @@ function ProAnalyticsPage() {
     });
   }, [logs, links]);
 
+  // Top 3 links for pie chart
+  const top3Slices = useMemo(() => {
+    if (slices.length === 0) return [];
+    const sorted = [...slices].sort((a, b) => b.clicks - a.clicks).slice(0, 3);
+    const totalTop3Clicks = sorted.reduce((sum, s) => sum + s.clicks, 0);
+    return sorted.map((s) => ({
+      ...s,
+      pct: totalTop3Clicks ? (s.clicks / totalTop3Clicks) : (1 / sorted.length),
+    }));
+  }, [slices]);
+
   const sliceColors = ["#10b981", "#3b82f6", "#f59e0b", "#ec4899", "#8b5cf6", "#ef4444"];
 
   // 3rd: Visitor locations (country-wise)
@@ -286,72 +297,90 @@ function ProAnalyticsPage() {
           {/* Card 2: CTR per Link */}
           <div className="rounded-2xl border-2 border-foreground bg-card p-5 shadow-[0_4px_0_0_theme(colors.foreground)]">
             <h2 className="text-base font-bold mb-1">Click-Through-Rate</h2>
-            <p className="text-xs text-muted-foreground mb-6">Distribution of clicks across links</p>
+            <p className="text-xs text-muted-foreground mb-4">Distribution of clicks across links</p>
 
             {links.length === 0 ? (
               <div className="flex min-h-[160px] items-center justify-center text-sm text-muted-foreground">
                 No links added yet.
               </div>
-            ) : links.length <= 6 ? (
-              /* Render Pie Chart */
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-8">
-                <div className="relative h-[140px] w-[140px] shrink-0">
-                  <svg viewBox="0 0 140 140" className="w-full h-full overflow-visible">
+            ) : (
+              <div className="space-y-6">
+                {/* 1. Pie Chart - Top 3 Links */}
+                <div>
+                  <p className="text-xs font-bold text-muted-foreground mb-3 uppercase tracking-wider">Top 3 Links (Pie Chart)</p>
+                  <div className="flex flex-col sm:flex-row items-center justify-center gap-6 rounded-xl border-2 border-foreground bg-muted/20 p-4">
+                    <div className="relative h-[130px] w-[130px] shrink-0">
+                      <svg viewBox="0 0 140 140" className="w-full h-full overflow-visible">
+                        {(() => {
+                          let top3Offset = 0;
+                          return top3Slices.map((slice, idx) => {
+                            const strokeDasharray = `${slice.pct * pieCirc} ${pieCirc}`;
+                            const strokeDashoffset = -top3Offset * pieCirc;
+                            top3Offset += slice.pct;
+                            const color = sliceColors[idx % sliceColors.length];
+                            return (
+                              <circle
+                                key={idx}
+                                cx="70"
+                                cy="70"
+                                r={pieRadius}
+                                fill="transparent"
+                                stroke={color}
+                                strokeWidth="20"
+                                strokeDasharray={strokeDasharray}
+                                strokeDashoffset={strokeDashoffset}
+                                transform="rotate(-90 70 70)"
+                                className="transition-all duration-200 hover:stroke-[24px] cursor-pointer"
+                              />
+                            );
+                          });
+                        })()}
+                      </svg>
+                    </div>
+                    {/* Top 3 Legend */}
+                    <div className="flex-1 w-full space-y-2">
+                      {top3Slices.map((slice, idx) => (
+                        <div key={idx} className="flex items-center gap-2 text-xs font-bold">
+                          <span className="h-3 w-3 shrink-0 rounded-full border border-foreground" style={{ background: sliceColors[idx % sliceColors.length] }} />
+                          <span className="truncate max-w-[130px]">{slice.label}</span>
+                          <span className="text-muted-foreground ml-auto font-black">{Math.round(slice.pct * 100)}%</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* 2. All Links CTR Analytics (Bar Graph with Scrollable Sidebar) */}
+                <div className="border-t-2 border-dashed border-foreground/10 pt-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">All Links CTR Bar Graph</p>
+                    <span className="text-[10px] font-bold text-muted-foreground bg-muted px-2 py-0.5 rounded-full border border-foreground/20">
+                      {slices.length} {slices.length === 1 ? "Link" : "Links"}
+                    </span>
+                  </div>
+                  
+                  {/* Scrollable sidebar container for seeing multiple links */}
+                  <div className="space-y-3 max-h-[190px] overflow-y-auto pr-2">
                     {slices.map((slice, idx) => {
-                      const strokeDasharray = `${slice.pct * pieCirc} ${pieCirc}`;
-                      const strokeDashoffset = -cumulativePct * pieCirc;
-                      cumulativePct += slice.pct;
+                      const pct = Math.round(slice.pct * 100);
                       const color = sliceColors[idx % sliceColors.length];
                       return (
-                        <circle
-                          key={idx}
-                          cx="70"
-                          cy="70"
-                          r={pieRadius}
-                          fill="transparent"
-                          stroke={color}
-                          strokeWidth="20"
-                          strokeDasharray={strokeDasharray}
-                          strokeDashoffset={strokeDashoffset}
-                          transform="rotate(-90 70 70)"
-                          className="transition-all duration-200 hover:stroke-[24px] cursor-pointer"
-                        />
+                        <div key={idx} className="space-y-1">
+                          <div className="flex items-center justify-between text-xs font-semibold">
+                            <span className="truncate max-w-[160px] font-bold">{slice.label}</span>
+                            <span className="text-muted-foreground text-[11px]">{pct}% ({formatCompactNumber(slice.clicks)} clicks)</span>
+                          </div>
+                          <div className="h-3 w-full rounded-full border-2 border-foreground bg-card overflow-hidden">
+                            <div
+                              className="h-full border-r-2 border-foreground transition-all duration-300"
+                              style={{ width: `${pct}%`, backgroundColor: color }}
+                            />
+                          </div>
+                        </div>
                       );
                     })}
-                  </svg>
+                  </div>
                 </div>
-                {/* Pie Chart Legend */}
-                <div className="flex-1 w-full space-y-2 max-h-[160px] overflow-y-auto pr-1">
-                  {slices.map((slice, idx) => (
-                    <div key={idx} className="flex items-center gap-2 text-xs font-semibold">
-                      <span className="h-3 w-3 shrink-0 rounded-full border border-foreground" style={{ background: sliceColors[idx % sliceColors.length] }} />
-                      <span className="truncate max-w-[120px]">{slice.label}</span>
-                      <span className="text-muted-foreground ml-auto">{Math.round(slice.pct * 100)}%</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ) : (
-              /* Render Horizontal Bar Chart */
-              <div className="space-y-3 max-h-[180px] overflow-y-auto pr-1">
-                {slices.map((slice, idx) => {
-                  const pct = Math.round(slice.pct * 100);
-                  const color = sliceColors[idx % sliceColors.length];
-                  return (
-                    <div key={idx} className="space-y-1">
-                      <div className="flex items-center justify-between text-xs font-semibold">
-                        <span className="truncate max-w-[150px]">{slice.label}</span>
-                        <span className="text-muted-foreground">{pct}% ({formatCompactNumber(slice.clicks)} clicks)</span>
-                      </div>
-                      <div className="h-3 w-full rounded-full border-2 border-foreground bg-card overflow-hidden">
-                        <div
-                          className="h-full border-r-2 border-foreground"
-                          style={{ width: `${pct}%`, backgroundColor: color }}
-                        />
-                      </div>
-                    </div>
-                  );
-                })}
               </div>
             )}
           </div>
