@@ -331,35 +331,46 @@ function Dashboard() {
   function PhonePreview() {
     const t = localTheme;
     return (
-      <div className="rounded-3xl border-2 border-foreground p-3 shadow-[0_10px_0_0_theme(colors.foreground)]" style={{ background: t.bg }}>
-        <div className="max-h-[560px] overflow-y-auto rounded-2xl px-5 py-6" style={{ background: t.bg, color: t.text }}>
-          <div className="flex flex-col items-center text-center">
-            <div className="relative">
-              <Avatar url={user!.avatar} name={localName} />
-              {user!.premium && (
-                <div className="absolute -top-1.5 -right-1.5 rounded-full border-2 border-foreground bg-amber-400 p-1 text-foreground shadow-[1px_1px_0_0_theme(colors.foreground)]" title="Premium Creator">
-                  <Crown className="h-3 w-3 fill-amber-300" />
-                </div>
-              )}
-            </div>
-            <div className="mt-3 flex items-center justify-center gap-1.5 text-lg font-bold" style={getFontFamily(t.nameFont || t.font)}>
-              {user!.premium && (
-                <Crown className="h-4.5 w-4.5 fill-amber-400 text-amber-500 shrink-0 animate-pulse" />
-              )}
-              <span className="truncate max-w-[160px]">{localName || `@${user!.username}`}</span>
-              {user!.premium && (
-                <span className="inline-flex items-center justify-center rounded-full bg-blue-500 p-0.5 text-white shrink-0 shadow-[1px_1px_0_0_theme(colors.foreground)]" title="Verified Creator">
-                  <Check className="h-2.5 w-2.5 stroke-[3.5]" />
-                </span>
-              )}
-            </div>
-            <p className="text-sm opacity-70">@{user!.username}</p>
-            {localBio && <p className="mt-2 max-w-xs text-sm opacity-80" style={{ ...getFontFamily(t.bioFont || t.font), wordBreak: "break-word", overflowWrap: "break-word" }}>{localBio}</p>}
-            <div className="mt-5 w-full space-y-2.5">
-              {user!.links.length === 0 && <p className="py-6 text-xs opacity-60">No links yet — add your first one →</p>}
-              {user!.links.map((l) => (
-                <PreviewBtn key={l.id} label={l.title} url={l.url} theme={t} />
-              ))}
+      <div className="relative">
+        <a
+          href={`/${user!.username}`}
+          target="_blank"
+          rel="noreferrer"
+          className="absolute -top-3 right-2 z-10 inline-flex items-center gap-1.5 rounded-full border-2 border-foreground bg-card px-3 py-1.5 text-[11px] font-black shadow-[2px_2px_0_0_theme(colors.foreground)] hover:bg-accent/30 transition-all hover:-translate-y-0.5 active:translate-y-0 active:shadow-none lg:hidden"
+        >
+          <Eye className="h-3 w-3" />
+          Live Page
+        </a>
+        <div className="rounded-3xl border-2 border-foreground p-3 shadow-[0_10px_0_0_theme(colors.foreground)]" style={{ background: t.bg }}>
+          <div className="max-h-[560px] overflow-y-auto rounded-2xl px-5 py-6" style={{ background: t.bg, color: t.text }}>
+            <div className="flex flex-col items-center text-center">
+              <div className="relative">
+                <Avatar url={user!.avatar} name={localName} />
+                {user!.premium && (
+                  <div className="absolute -top-1.5 -right-1.5 rounded-full border-2 border-foreground bg-amber-400 p-1 text-foreground shadow-[1px_1px_0_0_theme(colors.foreground)]" title="Premium Creator">
+                    <Crown className="h-3 w-3 fill-amber-300" />
+                  </div>
+                )}
+              </div>
+              <div className="mt-3 flex items-center justify-center gap-1.5 text-lg font-bold" style={getFontFamily(t.nameFont || t.font)}>
+                {user!.premium && (
+                  <Crown className="h-4.5 w-4.5 fill-amber-400 text-amber-500 shrink-0 animate-pulse" />
+                )}
+                <span className="truncate max-w-[160px]">{localName || `@${user!.username}`}</span>
+                {user!.premium && (
+                  <span className="inline-flex items-center justify-center rounded-full bg-blue-500 p-0.5 text-white shrink-0 shadow-[1px_1px_0_0_theme(colors.foreground)]" title="Verified Creator">
+                    <Check className="h-2.5 w-2.5 stroke-[3.5]" />
+                  </span>
+                )}
+              </div>
+              <p className="text-sm opacity-70">@{user!.username}</p>
+              {localBio && <p className="mt-2 max-w-xs text-sm opacity-80" style={{ ...getFontFamily(t.bioFont || t.font), wordBreak: "break-word", overflowWrap: "break-word" }}>{localBio}</p>}
+              <div className="mt-5 w-full space-y-2.5">
+                {user!.links.length === 0 && <p className="py-6 text-xs opacity-60">No links yet — add your first one →</p>}
+                {user!.links.map((l) => (
+                  <PreviewBtn key={l.id} label={l.title} url={l.url} theme={t} />
+                ))}
+              </div>
             </div>
           </div>
         </div>
