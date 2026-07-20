@@ -801,7 +801,9 @@ function Dashboard() {
               <Crown className="h-5 w-5 text-amber-500 fill-amber-500 shrink-0 animate-pulse" />
               <div className="text-left">
                 <p className="font-bold text-sm">Advance Analytics for premium users</p>
-                <p className="text-xs text-muted-foreground mt-0.5">Unlock geo-tracking, custom referrers, and visitor device metrics.</p>
+                {!user!.premium && (
+                  <p className="text-xs text-muted-foreground mt-0.5">Unlock geo-tracking, custom referrers, and visitor device metrics.</p>
+                )}
               </div>
             </div>
             <ChevronRight className="h-5 w-5 text-foreground shrink-0" />
