@@ -1096,6 +1096,12 @@ function ProfileTab({ user, update, localName, setLocalName, localBio, setLocalB
       return "Bio cannot contain HTML or code characters (< > { } ; ` \\).";
     }
 
+    const selNameOpt = fontOptions.find((o) => o.value === (localTheme.nameFont || localTheme.font));
+    const selBioOpt = fontOptions.find((o) => o.value === (localTheme.bioFont || localTheme.font));
+    if (!user!.premium && ((selNameOpt && selNameOpt.isPremium) || (selBioOpt && selBioOpt.isPremium))) {
+      return "unlock the premium to use this fonts";
+    }
+
     return "";
   };
 
@@ -1113,31 +1119,31 @@ function ProfileTab({ user, update, localName, setLocalName, localBio, setLocalB
   }, []);
 
   const fontOptions = [
-    { value: "sans",       label: "Inter — Clean & Modern",       preview: "Inter" },
-    { value: "display",    label: "Space Grotesk — Techy Bold",    preview: "Space Grotesk" },
-    { value: "poppins",    label: "Poppins — Friendly Round",      preview: "Poppins" },
-    { value: "montserrat", label: "Montserrat — Elegant Strong",   preview: "Montserrat" },
-    { value: "raleway",    label: "Raleway — Stylish Thin",        preview: "Raleway" },
-    { value: "nunito",     label: "Nunito — Soft & Playful",       preview: "Nunito" },
-    { value: "lato",       label: "Lato — Professional Light",     preview: "Lato" },
-    { value: "oswald",     label: "Oswald — Condensed Impact",     preview: "Oswald" },
-    { value: "italic",     label: "Playfair Display — Italic Serif",preview: "Playfair Display" },
-    { value: "bebas",      label: "Bebas Neue — All Caps Bold",    preview: "Bebas Neue" },
-    { value: "galindo",    label: "Galindo — Retro Pop",           preview: "Galindo" },
-    { value: "righteous",  label: "Righteous — Groovy Display",    preview: "Righteous" },
-    { value: "pacifico",   label: "Pacifico — Surf Script",        preview: "Pacifico" },
-    { value: "dancing",    label: "Dancing Script — Handwritten",  preview: "Dancing Script" },
-    { value: "lobster",    label: "Lobster — Curvy Script",        preview: "Lobster" },
-    { value: "ubuntu",     label: "Ubuntu — Rounded Sans",         preview: "Ubuntu" },
-    { value: "merriweather", label: "Merriweather — Warm Serif",   preview: "Merriweather" },
-    { value: "caveat",     label: "Caveat — Playful Handwriting",  preview: "Caveat" },
-    { value: "cinzel",     label: "Cinzel — Roman Classic",        preview: "Cinzel" },
-    { value: "aboreto",    label: "Aboreto — Futuristic Modern",   preview: "Aboreto" },
-    { value: "comfortaa",  label: "Comfortaa — Soft Geometric",    preview: "Comfortaa" },
-    { value: "bungee",     label: "Bungee — Heavy Inline",         preview: "Bungee" },
-    { value: "marker",     label: "Permanent Marker — Street Art", preview: "Marker" },
-    { value: "gloria",     label: "Gloria Hallelujah — School Script", preview: "Gloria" },
-    { value: "dirt",       label: "Rubik Dirt — Muddy 3D",         preview: "Rubik Dirt" },
+    { value: "sans",       label: "Inter — Clean & Modern",       preview: "Inter",           isPremium: false },
+    { value: "display",    label: "Space Grotesk — Techy Bold",    preview: "Space Grotesk",   isPremium: false },
+    { value: "poppins",    label: "Poppins — Friendly Round",      preview: "Poppins",         isPremium: true },
+    { value: "montserrat", label: "Montserrat — Elegant Strong",   preview: "Montserrat",      isPremium: false },
+    { value: "raleway",    label: "Raleway — Stylish Thin",        preview: "Raleway",         isPremium: false },
+    { value: "nunito",     label: "Nunito — Soft & Playful",       preview: "Nunito",          isPremium: false },
+    { value: "lato",       label: "Lato — Professional Light",     preview: "Lato",            isPremium: false },
+    { value: "oswald",     label: "Oswald — Condensed Impact",     preview: "Oswald",          isPremium: false },
+    { value: "italic",     label: "Playfair Display — Italic Serif",preview: "Playfair Display",isPremium: false },
+    { value: "bebas",      label: "Bebas Neue — All Caps Bold",    preview: "Bebas Neue",      isPremium: true },
+    { value: "galindo",    label: "Galindo — Retro Pop",           preview: "Galindo",         isPremium: false },
+    { value: "righteous",  label: "Righteous — Groovy Display",    preview: "Righteous",       isPremium: true },
+    { value: "pacifico",   label: "Pacifico — Surf Script",        preview: "Pacifico",        isPremium: true },
+    { value: "dancing",    label: "Dancing Script — Handwritten",  preview: "Dancing Script",  isPremium: false },
+    { value: "lobster",    label: "Lobster — Curvy Script",        preview: "Lobster",         isPremium: true },
+    { value: "ubuntu",     label: "Ubuntu — Rounded Sans",         preview: "Ubuntu",          isPremium: true },
+    { value: "merriweather", label: "Merriweather — Warm Serif",   preview: "Merriweather",    isPremium: true },
+    { value: "caveat",     label: "Caveat — Playful Handwriting",  preview: "Caveat",          isPremium: true },
+    { value: "cinzel",     label: "Cinzel — Roman Classic",        preview: "Cinzel",          isPremium: true },
+    { value: "aboreto",    label: "Aboreto — Futuristic Modern",   preview: "Aboreto",         isPremium: true },
+    { value: "comfortaa",  label: "Comfortaa — Soft Geometric",    preview: "Comfortaa",       isPremium: true },
+    { value: "bungee",     label: "Bungee — Heavy Inline",         preview: "Bungee",          isPremium: true },
+    { value: "marker",     label: "Permanent Marker — Street Art", preview: "Marker",          isPremium: true },
+    { value: "gloria",     label: "Gloria Hallelujah — School Script", preview: "Gloria",     isPremium: true },
+    { value: "dirt",       label: "Rubik Dirt — Muddy 3D",         preview: "Rubik Dirt",      isPremium: true },
   ] as const;
 
   const onUpload = async (f: File) => {
@@ -1407,15 +1413,34 @@ function ProfileTab({ user, update, localName, setLocalName, localBio, setLocalB
                     key={opt.value}
                     type="button"
                     onClick={() => {
+                      if (opt.isPremium && !user!.premium) {
+                        setValidationError("unlock the premium to use this fonts");
+                        setIsFontDropdownOpen(false);
+                        return;
+                      }
+                      setValidationError("");
                       setLocalTheme({ ...localTheme, nameFont: opt.value });
                       setIsFontDropdownOpen(false);
                     }}
-                    className={`flex w-full flex-col rounded-xl px-4 py-2 hover:bg-muted transition-colors ${
+                    className={`flex w-full items-center justify-between rounded-xl px-4 py-2 hover:bg-muted transition-colors ${
                       (localTheme.nameFont || localTheme.font) === opt.value ? "bg-muted" : ""
                     }`}
                   >
-                    <span className="text-sm font-semibold" style={getFontFamily(opt.value)}>{opt.preview}</span>
-                    <span className="text-[10px] text-muted-foreground mt-0.5" style={{ fontFamily: "inherit" }}>{opt.label.split(" — ")[1] || ""}</span>
+                    <div className="flex flex-col text-left">
+                      <span className="text-sm font-semibold flex items-center gap-1.5" style={getFontFamily(opt.value)}>
+                        <span>{opt.preview}</span>
+                        {opt.isPremium && (
+                          <Crown className="h-3 w-3 fill-amber-400 text-amber-500 shrink-0 inline-block" title="Premium Font" />
+                        )}
+                      </span>
+                      <span className="text-[10px] text-muted-foreground mt-0.5" style={{ fontFamily: "inherit" }}>{opt.label.split(" — ")[1] || ""}</span>
+                    </div>
+                    {opt.isPremium && (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[9px] font-black text-amber-800 border border-amber-300 shrink-0">
+                        <Crown className="h-2.5 w-2.5 fill-amber-500 text-amber-600" />
+                        PRO
+                      </span>
+                    )}
                   </button>
                 ))}
               </div>
@@ -1452,15 +1477,34 @@ function ProfileTab({ user, update, localName, setLocalName, localBio, setLocalB
                     key={opt.value}
                     type="button"
                     onClick={() => {
+                      if (opt.isPremium && !user!.premium) {
+                        setValidationError("unlock the premium to use this fonts");
+                        setIsBioFontDropdownOpen(false);
+                        return;
+                      }
+                      setValidationError("");
                       setLocalTheme({ ...localTheme, bioFont: opt.value });
                       setIsBioFontDropdownOpen(false);
                     }}
-                    className={`flex w-full flex-col rounded-xl px-4 py-2 hover:bg-muted transition-colors ${
+                    className={`flex w-full items-center justify-between rounded-xl px-4 py-2 hover:bg-muted transition-colors ${
                       (localTheme.bioFont || localTheme.font) === opt.value ? "bg-muted" : ""
                     }`}
                   >
-                    <span className="text-sm font-semibold" style={getFontFamily(opt.value)}>{opt.preview}</span>
-                    <span className="text-[10px] text-muted-foreground mt-0.5" style={{ fontFamily: "inherit" }}>{opt.label.split(" — ")[1] || ""}</span>
+                    <div className="flex flex-col text-left">
+                      <span className="text-sm font-semibold flex items-center gap-1.5" style={getFontFamily(opt.value)}>
+                        <span>{opt.preview}</span>
+                        {opt.isPremium && (
+                          <Crown className="h-3 w-3 fill-amber-400 text-amber-500 shrink-0 inline-block" title="Premium Font" />
+                        )}
+                      </span>
+                      <span className="text-[10px] text-muted-foreground mt-0.5" style={{ fontFamily: "inherit" }}>{opt.label.split(" — ")[1] || ""}</span>
+                    </div>
+                    {opt.isPremium && (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[9px] font-black text-amber-800 border border-amber-300 shrink-0">
+                        <Crown className="h-2.5 w-2.5 fill-amber-500 text-amber-600" />
+                        PRO
+                      </span>
+                    )}
                   </button>
                 ))}
               </div>
