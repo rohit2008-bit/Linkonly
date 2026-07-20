@@ -1477,7 +1477,7 @@ function ProfileTab({ user, update, localName, setLocalName, localBio, setLocalB
             </button>
             
             {isBioFontDropdownOpen && (
-              <div className="absolute left-0 right-0 mt-2 max-h-52 overflow-y-auto rounded-2xl border-2 border-foreground bg-card p-1.5 shadow-[0_6px_0_0_theme(colors.foreground)] z-[100] animate-in fade-in slide-in-from-top-2 duration-150">
+              <div className="absolute bottom-full left-0 right-0 mb-2 max-h-52 overflow-y-auto rounded-2xl border-2 border-foreground bg-card p-1.5 shadow-[0_-6px_0_0_theme(colors.foreground)] z-[100] animate-in fade-in slide-in-from-bottom-2 duration-150">
                 {fontOptions.map((opt) => (
                   <button
                     key={opt.value}
