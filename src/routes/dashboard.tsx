@@ -1128,6 +1128,16 @@ function ProfileTab({ user, update, localName, setLocalName, localBio, setLocalB
     { value: "pacifico",   label: "Pacifico — Surf Script",        preview: "Pacifico" },
     { value: "dancing",    label: "Dancing Script — Handwritten",  preview: "Dancing Script" },
     { value: "lobster",    label: "Lobster — Curvy Script",        preview: "Lobster" },
+    { value: "ubuntu",     label: "Ubuntu — Rounded Sans",         preview: "Ubuntu" },
+    { value: "merriweather", label: "Merriweather — Warm Serif",   preview: "Merriweather" },
+    { value: "caveat",     label: "Caveat — Playful Handwriting",  preview: "Caveat" },
+    { value: "cinzel",     label: "Cinzel — Roman Classic",        preview: "Cinzel" },
+    { value: "aboreto",    label: "Aboreto — Futuristic Modern",   preview: "Aboreto" },
+    { value: "comfortaa",  label: "Comfortaa — Soft Geometric",    preview: "Comfortaa" },
+    { value: "bungee",     label: "Bungee — Heavy Inline",         preview: "Bungee" },
+    { value: "marker",     label: "Permanent Marker — Street Art", preview: "Marker" },
+    { value: "gloria",     label: "Gloria Hallelujah — School Script", preview: "Gloria" },
+    { value: "dirt",       label: "Rubik Dirt — Muddy 3D",         preview: "Rubik Dirt" },
   ] as const;
 
   const onUpload = async (f: File) => {

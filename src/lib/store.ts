@@ -14,9 +14,9 @@ export type Theme = {
   button: "pill" | "solid" | "outline";
   buttonBg: string;
   buttonText: string;
-  font: "sans" | "display" | "italic" | "bebas" | "galindo";
-  nameFont?: "sans" | "display" | "italic" | "bebas" | "galindo";
-  bioFont?: "sans" | "display" | "italic" | "bebas" | "galindo";
+  font: "sans" | "display" | "italic" | "bebas" | "galindo" | "poppins" | "nunito" | "lato" | "oswald" | "raleway" | "montserrat" | "pacifico" | "dancing" | "lobster" | "righteous" | "ubuntu" | "merriweather" | "caveat" | "cinzel" | "aboreto" | "comfortaa" | "bungee" | "marker" | "gloria" | "dirt";
+  nameFont?: "sans" | "display" | "italic" | "bebas" | "galindo" | "poppins" | "nunito" | "lato" | "oswald" | "raleway" | "montserrat" | "pacifico" | "dancing" | "lobster" | "righteous" | "ubuntu" | "merriweather" | "caveat" | "cinzel" | "aboreto" | "comfortaa" | "bungee" | "marker" | "gloria" | "dirt";
+  bioFont?: "sans" | "display" | "italic" | "bebas" | "galindo" | "poppins" | "nunito" | "lato" | "oswald" | "raleway" | "montserrat" | "pacifico" | "dancing" | "lobster" | "righteous" | "ubuntu" | "merriweather" | "caveat" | "cinzel" | "aboreto" | "comfortaa" | "bungee" | "marker" | "gloria" | "dirt";
 };
 
 export type Profile = {
@@ -194,15 +194,55 @@ export function newId() {
 export function getFontFamily(font: Theme["font"]): React.CSSProperties {
   switch (font) {
     case "display":
-      return { fontFamily: "var(--font-display)" };
+      return { fontFamily: "'Space Grotesk', sans-serif" };
     case "italic":
       return { fontFamily: "'Playfair Display', Georgia, serif", fontStyle: "italic" };
     case "bebas":
       return { fontFamily: "'Bebas Neue', sans-serif" };
     case "galindo":
       return { fontFamily: "'Galindo', cursive, sans-serif" };
+    case "poppins":
+      return { fontFamily: "'Poppins', sans-serif" };
+    case "nunito":
+      return { fontFamily: "'Nunito', sans-serif" };
+    case "lato":
+      return { fontFamily: "'Lato', sans-serif" };
+    case "oswald":
+      return { fontFamily: "'Oswald', sans-serif" };
+    case "raleway":
+      return { fontFamily: "'Raleway', sans-serif" };
+    case "montserrat":
+      return { fontFamily: "'Montserrat', sans-serif" };
+    case "pacifico":
+      return { fontFamily: "'Pacifico', cursive" };
+    case "dancing":
+      return { fontFamily: "'Dancing Script', cursive" };
+    case "lobster":
+      return { fontFamily: "'Lobster', cursive" };
+    case "righteous":
+      return { fontFamily: "'Righteous', cursive" };
+    case "ubuntu":
+      return { fontFamily: "'Ubuntu', sans-serif" };
+    case "merriweather":
+      return { fontFamily: "'Merriweather', serif" };
+    case "caveat":
+      return { fontFamily: "'Caveat', cursive" };
+    case "cinzel":
+      return { fontFamily: "'Cinzel', serif" };
+    case "aboreto":
+      return { fontFamily: "'Aboreto', cursive" };
+    case "comfortaa":
+      return { fontFamily: "'Comfortaa', cursive" };
+    case "bungee":
+      return { fontFamily: "'Bungee', sans-serif" };
+    case "marker":
+      return { fontFamily: "'Permanent Marker', cursive" };
+    case "gloria":
+      return { fontFamily: "'Gloria Hallelujah', cursive" };
+    case "dirt":
+      return { fontFamily: "'Rubik Dirt', cursive" };
     case "sans":
     default:
-      return { fontFamily: "var(--font-sans)" };
+      return { fontFamily: "'Inter', sans-serif" };
   }
 }
