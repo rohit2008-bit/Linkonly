@@ -271,7 +271,7 @@ function Landing() {
           <div>
             <h4 className="font-bold mb-4">About</h4>
             <ul className="space-y-2 text-sm text-muted-foreground font-semibold">
-              <li><a href="#" className="hover:text-foreground">Pricing</a></li>
+              <li><Link to="/explorepricing" className="hover:text-foreground">Pricing</Link></li>
               <li><a href="#" className="hover:text-foreground">Blog</a></li>
               <li><a href="#" className="hover:text-foreground">Contact</a></li>
             </ul>
