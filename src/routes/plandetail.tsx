@@ -35,7 +35,7 @@ function PlanDetailPage() {
     <div className="min-h-screen bg-background">
       <header className="border-b-2 border-foreground bg-card">
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-4 sm:px-6">
-          <Link to="/" className="flex min-w-0 items-center gap-2 font-bold" style={{ fontFamily: "var(--font-display)" }}>
+          <Link to={user ? "/dashboard" : "/"} className="flex min-w-0 items-center gap-2 font-bold" style={{ fontFamily: "var(--font-display)" }}>
             <img src="/logo.png" alt="LinkOnly" className="h-8 w-8 shrink-0 object-contain" />
             <span>LinkOnly</span>
           </Link>

@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as UsernameRouteImport } from './routes/$username'
 import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as ExplorepricingRouteImport } from './routes/explorepricing'
 import { Route as PlandetailRouteImport } from './routes/plandetail'
 import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as ProanalyticsRouteImport } from './routes/proanalytics'
@@ -30,6 +31,11 @@ const UsernameRoute = UsernameRouteImport.update({
 const DashboardRoute = DashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ExplorepricingRoute = ExplorepricingRouteImport.update({
+  id: '/explorepricing',
+  path: '/explorepricing',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PlandetailRoute = PlandetailRouteImport.update({
@@ -57,6 +63,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/$username': typeof UsernameRoute
   '/dashboard': typeof DashboardRoute
+  '/explorepricing': typeof ExplorepricingRoute
   '/plandetail': typeof PlandetailRoute
   '/pricing': typeof PricingRoute
   '/proanalytics': typeof ProanalyticsRoute
@@ -66,6 +73,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/$username': typeof UsernameRoute
   '/dashboard': typeof DashboardRoute
+  '/explorepricing': typeof ExplorepricingRoute
   '/plandetail': typeof PlandetailRoute
   '/pricing': typeof PricingRoute
   '/proanalytics': typeof ProanalyticsRoute
@@ -76,6 +84,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/$username': typeof UsernameRoute
   '/dashboard': typeof DashboardRoute
+  '/explorepricing': typeof ExplorepricingRoute
   '/plandetail': typeof PlandetailRoute
   '/pricing': typeof PricingRoute
   '/proanalytics': typeof ProanalyticsRoute
@@ -87,6 +96,7 @@ export interface FileRouteTypes {
     | '/'
     | '/$username'
     | '/dashboard'
+    | '/explorepricing'
     | '/plandetail'
     | '/pricing'
     | '/proanalytics'
@@ -96,6 +106,7 @@ export interface FileRouteTypes {
     | '/'
     | '/$username'
     | '/dashboard'
+    | '/explorepricing'
     | '/plandetail'
     | '/pricing'
     | '/proanalytics'
@@ -105,6 +116,7 @@ export interface FileRouteTypes {
     | '/'
     | '/$username'
     | '/dashboard'
+    | '/explorepricing'
     | '/plandetail'
     | '/pricing'
     | '/proanalytics'
@@ -115,6 +127,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   UsernameRoute: typeof UsernameRoute
   DashboardRoute: typeof DashboardRoute
+  ExplorepricingRoute: typeof ExplorepricingRoute
   PlandetailRoute: typeof PlandetailRoute
   PricingRoute: typeof PricingRoute
   ProanalyticsRoute: typeof ProanalyticsRoute
@@ -142,6 +155,13 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/explorepricing': {
+      id: '/explorepricing'
+      path: '/explorepricing'
+      fullPath: '/explorepricing'
+      preLoaderRoute: typeof ExplorepricingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/plandetail': {
@@ -179,6 +199,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   UsernameRoute: UsernameRoute,
   DashboardRoute: DashboardRoute,
+  ExplorepricingRoute: ExplorepricingRoute,
   PlandetailRoute: PlandetailRoute,
   PricingRoute: PricingRoute,
   ProanalyticsRoute: ProanalyticsRoute,

@@ -150,7 +150,7 @@ function AuthPage() {
   return (
     <div className="min-h-screen bg-background auth-container animate-fade-in-up delay-100 fill-mode-backwards">
       <header className="mx-auto flex max-w-6xl items-center justify-between px-6 py-6">
-        <Link to="/" className="flex items-center gap-2 text-lg font-bold" style={{ fontFamily: "var(--font-display)" }}>
+        <Link to={user ? "/dashboard" : "/"} className="flex items-center gap-2 text-lg font-bold" style={{ fontFamily: "var(--font-display)" }}>
           <img src="/logo.png" alt="Logo" className="h-8 w-8 object-contain" />
           LinkOnly
         </Link>

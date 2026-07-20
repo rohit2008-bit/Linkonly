@@ -186,9 +186,6 @@ function getAiTips(links: any[], user: any): AiTip[] {
 
 export const Route = createFileRoute("/dashboard")({
   component: Dashboard,
-  validateSearch: (search: Record<string, unknown>) => ({
-    tab: (search.tab as string) || "profile",
-  }),
 });
 
 type Tab = "links" | "profile" | "theme" | "qr" | "analytics";
@@ -202,8 +199,7 @@ function Dashboard() {
     return !user.name?.trim() || !user.bio?.trim();
   }, [user]);
 
-  const { tab: initialTab } = Route.useSearch();
-  const [tab, setTab] = useState<Tab>((initialTab as Tab) || "profile");
+  const [tab, setTab] = useState<Tab>("profile");
   const [localTheme, setLocalTheme] = useState<Theme>(user?.theme || defaultTheme);
   const [localName, setLocalName] = useState(user?.name || "");
   const [localBio, setLocalBio] = useState(user?.bio || "");
@@ -262,7 +258,7 @@ function Dashboard() {
       `}</style>
       <header className="border-b-2 border-foreground bg-card">
         <div className="mx-auto grid max-w-6xl grid-cols-[minmax(0,1fr)_auto] items-center gap-4 px-4 py-3 sm:flex sm:justify-between">
-          <Link to="/" className="flex min-w-0 items-center gap-2 font-bold" style={{ fontFamily: "var(--font-display)" }}>
+          <Link to="/dashboard" className="flex min-w-0 items-center gap-2 font-bold" style={{ fontFamily: "var(--font-display)" }}>
             <img src="/logo.png" alt="Logo" className="h-8 w-8 shrink-0 object-contain" />
             <span className="truncate">LinkOnly</span>
           </Link>

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, BarChart3, Palette, QrCode, Sparkles, Link as LinkIcon, ChevronDown } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 
@@ -9,15 +9,7 @@ export const Route = createFileRoute("/")({
 
 function Landing() {
   const { user } = useAuth();
-  const navigate = useNavigate();
   const [openFaq, setOpenFaq] = useState<number | null>(null);
-
-  const handleLogoClick = (e: React.MouseEvent) => {
-    if (user) {
-      e.preventDefault();
-      navigate({ to: "/dashboard", search: { tab: "profile" } });
-    }
-  };
 
   const faqs = [
     {
@@ -44,15 +36,23 @@ function Landing() {
   return (
     <div className="min-h-screen bg-background">
       <header className="mx-auto flex max-w-6xl items-center justify-between px-6 py-6">
-        <Link to="/" onClick={handleLogoClick} className="flex items-center gap-2 text-lg font-bold" style={{ fontFamily: "var(--font-display)" }}>
+        <Link to={user ? "/dashboard" : "/"} className="flex items-center gap-2 text-lg font-bold" style={{ fontFamily: "var(--font-display)" }}>
           <img src="/logo.png" alt="Logo" className="h-8 w-8 object-contain" />
-          LinkHub
+          LinkOnly
         </Link>
         <nav className="flex items-center gap-2">
-          <Link to="/auth/$mode" params={{ mode: "login" }} className="rounded-full px-4 py-2 text-sm font-medium hover:bg-muted">Log in</Link>
-          <Link to="/auth/$mode" params={{ mode: "signup" }} className="rounded-full bg-foreground px-4 py-2 text-sm font-semibold text-background hover:opacity-90">
-            Sign up free
-          </Link>
+          {user ? (
+            <Link to="/dashboard" className="rounded-full bg-foreground px-4 py-2 text-sm font-semibold text-background hover:opacity-90">
+              Go to Dashboard →
+            </Link>
+          ) : (
+            <>
+              <Link to="/auth/$mode" params={{ mode: "login" }} className="rounded-full px-4 py-2 text-sm font-medium hover:bg-muted">Log in</Link>
+              <Link to="/auth/$mode" params={{ mode: "signup" }} className="rounded-full bg-foreground px-4 py-2 text-sm font-semibold text-background hover:opacity-90">
+                Sign up free
+              </Link>
+            </>
+          )}
         </nav>
       </header>
 
@@ -258,7 +258,7 @@ function Landing() {
       <footer className="mx-auto max-w-6xl px-6 py-12 border-t-2 border-foreground">
         <div className="grid gap-8 md:grid-cols-4">
           <div className="md:col-span-2">
-            <Link to="/" onClick={handleLogoClick} className="flex items-center gap-2 text-xl font-bold" style={{ fontFamily: "var(--font-display)" }}>
+            <Link to={user ? "/dashboard" : "/"} className="flex items-center gap-2 text-xl font-bold" style={{ fontFamily: "var(--font-display)" }}>
               <img src="/logo.png" alt="Logo" className="h-8 w-8 object-contain" />
               LinkOnly
             </Link>

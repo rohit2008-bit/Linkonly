@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ChevronLeft, Crown, Check, Star, Sparkles, Zap } from "lucide-react";
+import { useAuth } from "@/lib/auth";
 
 export const Route = createFileRoute("/explorepricing")({
   ssr: false,
@@ -7,11 +8,12 @@ export const Route = createFileRoute("/explorepricing")({
 });
 
 function ExplorePricingPage() {
+  const { user } = useAuth();
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="mx-auto flex max-w-6xl items-center justify-between px-6 py-6">
-        <Link to="/" className="flex items-center gap-2 text-lg font-bold" style={{ fontFamily: "var(--font-display)" }}>
+        <Link to={user ? "/dashboard" : "/"} className="flex items-center gap-2 text-lg font-bold" style={{ fontFamily: "var(--font-display)" }}>
           <img src="/logo.png" alt="Logo" className="h-8 w-8 object-contain" />
           LinkOnly
         </Link>
