@@ -7,7 +7,7 @@ import {
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useState, useRef, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { AuthProvider } from "../lib/auth";
@@ -74,8 +74,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "stylesheet", href: appCss },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
-      { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" },
-      { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
+      { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=Bebas+Neue&family=Galindo&family=Playfair+Display:ital,wght@1,400;1,700&display=swap" },
+      { rel: "icon", href: "/logo.png", type: "image/png" },
     ],
   }),
   shellComponent: RootShell,
@@ -93,12 +93,73 @@ function RootShell({ children }: { children: ReactNode }) {
   );
 }
 
+function MouseFollower() {
+  const followerRef = useRef<HTMLDivElement | null>(null);
+  const [isHovered, setIsHovered] = useState(false);
+
+  useEffect(() => {
+    const follower = followerRef.current;
+    if (!follower) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      follower.style.transform = `translate3d(${e.clientX}px, ${e.clientY}px, 0) translate(-50%, -50%) scale(${isHovered ? 2.5 : 1})`;
+      follower.style.opacity = "1";
+    };
+
+    const handleMouseLeave = () => {
+      follower.style.opacity = "0";
+    };
+
+    const handleMouseEnter = () => {
+      follower.style.opacity = "1";
+    };
+
+    const handleMouseOver = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      const isInteractive = 
+        target.tagName === "BUTTON" || 
+        target.tagName === "A" || 
+        target.closest("button") || 
+        target.closest("a") || 
+        target.getAttribute("role") === "button";
+      setIsHovered(!!isInteractive);
+    };
+
+    window.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseleave", handleMouseLeave);
+    document.addEventListener("mouseenter", handleMouseEnter);
+    window.addEventListener("mouseover", handleMouseOver);
+
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseleave", handleMouseLeave);
+      document.removeEventListener("mouseenter", handleMouseEnter);
+      window.removeEventListener("mouseover", handleMouseOver);
+    };
+  }, [isHovered]);
+
+  return (
+    <div
+      ref={followerRef}
+      className="pointer-events-none fixed left-0 top-0 z-[9999] rounded-full transition-transform duration-75 ease-out hidden md:block opacity-0"
+      style={{
+        width: "10px",
+        height: "10px",
+        backgroundColor: "var(--primary)",
+        boxShadow: "0 0 10px var(--primary), 0 0 20px var(--primary)",
+        willChange: "transform, opacity",
+      }}
+    />
+  );
+}
+
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <Outlet />
+        <MouseFollower />
       </AuthProvider>
     </QueryClientProvider>
   );

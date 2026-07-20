@@ -11,8 +11,11 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as UsernameRouteImport } from './routes/$username'
-import { Route as AuthRouteImport } from './routes/auth'
 import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as PlandetailRouteImport } from './routes/plandetail'
+import { Route as PricingRouteImport } from './routes/pricing'
+import { Route as ProanalyticsRouteImport } from './routes/proanalytics'
+import { Route as AuthModeRouteImport } from './routes/auth.$mode'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -24,49 +27,98 @@ const UsernameRoute = UsernameRouteImport.update({
   path: '/$username',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthRoute = AuthRouteImport.update({
-  id: '/auth',
-  path: '/auth',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const DashboardRoute = DashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlandetailRoute = PlandetailRouteImport.update({
+  id: '/plandetail',
+  path: '/plandetail',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PricingRoute = PricingRouteImport.update({
+  id: '/pricing',
+  path: '/pricing',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProanalyticsRoute = ProanalyticsRouteImport.update({
+  id: '/proanalytics',
+  path: '/proanalytics',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthModeRoute = AuthModeRouteImport.update({
+  id: '/auth/$mode',
+  path: '/auth/$mode',
   getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/$username': typeof UsernameRoute
-  '/auth': typeof AuthRoute
   '/dashboard': typeof DashboardRoute
+  '/plandetail': typeof PlandetailRoute
+  '/pricing': typeof PricingRoute
+  '/proanalytics': typeof ProanalyticsRoute
+  '/auth/$mode': typeof AuthModeRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/$username': typeof UsernameRoute
-  '/auth': typeof AuthRoute
   '/dashboard': typeof DashboardRoute
+  '/plandetail': typeof PlandetailRoute
+  '/pricing': typeof PricingRoute
+  '/proanalytics': typeof ProanalyticsRoute
+  '/auth/$mode': typeof AuthModeRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/$username': typeof UsernameRoute
-  '/auth': typeof AuthRoute
   '/dashboard': typeof DashboardRoute
+  '/plandetail': typeof PlandetailRoute
+  '/pricing': typeof PricingRoute
+  '/proanalytics': typeof ProanalyticsRoute
+  '/auth/$mode': typeof AuthModeRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/$username' | '/auth' | '/dashboard'
+  fullPaths:
+    | '/'
+    | '/$username'
+    | '/dashboard'
+    | '/plandetail'
+    | '/pricing'
+    | '/proanalytics'
+    | '/auth/$mode'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/$username' | '/auth' | '/dashboard'
-  id: '__root__' | '/' | '/$username' | '/auth' | '/dashboard'
+  to:
+    | '/'
+    | '/$username'
+    | '/dashboard'
+    | '/plandetail'
+    | '/pricing'
+    | '/proanalytics'
+    | '/auth/$mode'
+  id:
+    | '__root__'
+    | '/'
+    | '/$username'
+    | '/dashboard'
+    | '/plandetail'
+    | '/pricing'
+    | '/proanalytics'
+    | '/auth/$mode'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   UsernameRoute: typeof UsernameRoute
-  AuthRoute: typeof AuthRoute
   DashboardRoute: typeof DashboardRoute
+  PlandetailRoute: typeof PlandetailRoute
+  PricingRoute: typeof PricingRoute
+  ProanalyticsRoute: typeof ProanalyticsRoute
+  AuthModeRoute: typeof AuthModeRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -85,18 +137,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof UsernameRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/auth': {
-      id: '/auth'
-      path: '/auth'
-      fullPath: '/auth'
-      preLoaderRoute: typeof AuthRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/dashboard': {
       id: '/dashboard'
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/plandetail': {
+      id: '/plandetail'
+      path: '/plandetail'
+      fullPath: '/plandetail'
+      preLoaderRoute: typeof PlandetailRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pricing': {
+      id: '/pricing'
+      path: '/pricing'
+      fullPath: '/pricing'
+      preLoaderRoute: typeof PricingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/proanalytics': {
+      id: '/proanalytics'
+      path: '/proanalytics'
+      fullPath: '/proanalytics'
+      preLoaderRoute: typeof ProanalyticsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth/$mode': {
+      id: '/auth/$mode'
+      path: '/auth/$mode'
+      fullPath: '/auth/$mode'
+      preLoaderRoute: typeof AuthModeRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -105,8 +178,11 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   UsernameRoute: UsernameRoute,
-  AuthRoute: AuthRoute,
   DashboardRoute: DashboardRoute,
+  PlandetailRoute: PlandetailRoute,
+  PricingRoute: PricingRoute,
+  ProanalyticsRoute: ProanalyticsRoute,
+  AuthModeRoute: AuthModeRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

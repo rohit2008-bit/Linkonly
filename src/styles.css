@@ -49,19 +49,19 @@
   --card-foreground: oklch(0.18 0.03 160);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.18 0.03 160);
-  --primary: oklch(0.22 0.04 160);
-  --primary-foreground: oklch(0.98 0.02 150);
+  --primary: oklch(0.82 0.28 140); /* Neon Green */
+  --primary-foreground: oklch(0.12 0.03 160); /* Dark contrast color */
   --secondary: oklch(0.94 0.03 160);
   --secondary-foreground: oklch(0.22 0.04 160);
   --muted: oklch(0.95 0.015 155);
   --muted-foreground: oklch(0.5 0.03 160);
-  --accent: oklch(0.78 0.17 145);
-  --accent-foreground: oklch(0.18 0.03 160);
+  --accent: oklch(0.82 0.28 140); /* Neon Green */
+  --accent-foreground: oklch(0.12 0.03 160);
   --destructive: oklch(0.6 0.22 25);
   --destructive-foreground: oklch(0.99 0 0);
-  --border: oklch(0.9 0.02 155);
+  --border: oklch(0.18 0.03 160);
   --input: oklch(0.92 0.015 155);
-  --ring: oklch(0.7 0.15 150);
+  --ring: oklch(0.82 0.28 140);
 }
 
 @layer base {
@@ -74,9 +74,114 @@
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
   }
-  h1, h2, h3, h4 {
+  h1, h2 {
     font-family: var(--font-display);
     letter-spacing: -0.02em;
+    color: var(--primary);
+    text-shadow: 2px 2px 0px var(--foreground);
+    -webkit-text-stroke: 1px var(--foreground);
+  }
+  .dashboard-container h1,
+  .dashboard-container h2,
+  .auth-container h1,
+  .auth-container h2,
+  .public-profile h1,
+  .public-profile h2 {
+    text-shadow: none !important;
+    -webkit-text-stroke: unset !important;
+    color: inherit !important;
+  }
+  h3, h4 {
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
+    color: var(--foreground);
+  }
+
+  /* Style all main buttons, links as buttons, and primary actions with neon green */
+  button.bg-foreground,
+  a.bg-foreground,
+  button.bg-emerald-500,
+  a.bg-emerald-500,
+  .bg-primary {
+    background-color: var(--primary) !important;
+    color: var(--primary-foreground) !important;
+    border: 2px solid var(--foreground) !important;
+    box-shadow: 0 4px 0 0 var(--foreground) !important;
+    transition: transform 120ms ease, box-shadow 120ms ease !important;
+  }
+
+  button.bg-foreground:hover,
+  a.bg-foreground:hover,
+  button.bg-emerald-500:hover,
+  a.bg-emerald-500:hover,
+  .bg-primary:hover {
+    transform: translate(0, 2px) !important;
+    box-shadow: 0 2px 0 0 var(--foreground) !important;
+  }
+
+  /* Ensure outline buttons also hover to neon green */
+  button.border-foreground:hover,
+  a.border-foreground:hover {
+    background-color: var(--primary) !important;
+    color: var(--primary-foreground) !important;
+  }
+
+  /* Staggered load animations */
+  @keyframes slideUpFade {
+    from {
+      opacity: 0;
+      transform: translateY(16px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-fade-in-up {
+    animation: slideUpFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  .delay-100 { animation-delay: 100ms; }
+  .delay-200 { animation-delay: 200ms; }
+  .delay-300 { animation-delay: 300ms; }
+  .delay-400 { animation-delay: 400ms; }
+
+  .fill-mode-backwards {
+    animation-fill-mode: backwards;
+  }
+
+  /* Phone Mock floating animation */
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-8px);
+    }
+  }
+
+  .animate-float {
+    animation: float 4s ease-in-out infinite;
+  }
+
+  /* Hover pops for custom feature and comparison cards */
+  .bg-card {
+    transition: transform 150ms ease, box-shadow 150ms ease, border-color 150ms ease !important;
+  }
+
+  .bg-card:hover {
+    transform: translate(-3px, -3px) !important;
+    box-shadow: 6px 6px 0px 0px var(--foreground) !important;
+  }
+
+  /* Match specific card shadows on hover */
+  .shadow-\[0_10px_0_0_theme\(colors\.foreground\)\]:hover,
+  .shadow-\[0_8px_0_0_theme\(colors\.foreground\)\]:hover,
+  .shadow-\[0_6px_0_0_theme\(colors\.foreground\)\]:hover,
+  .shadow-\[0_4px_0_0_theme\(colors\.foreground\)\]:hover {
+    transform: translate(-3px, -3px) !important;
+    box-shadow: 8px 8px 0px 0px var(--foreground) !important;
   }
 }
 
@@ -87,8 +192,8 @@
   width: 100%;
   padding: 1rem 1.25rem;
   border-radius: 9999px;
-  background: var(--card);
-  color: var(--foreground);
+  background: var(--primary);
+  color: var(--primary-foreground);
   font-weight: 600;
   border: 2px solid var(--foreground);
   box-shadow: var(--shadow-pill);
