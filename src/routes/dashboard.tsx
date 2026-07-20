@@ -1251,13 +1251,8 @@ function ProfileTab({ user, update, localName, setLocalName, localBio, setLocalB
             </div>
           )}
           <div className="absolute -bottom-1 -right-1 rounded-full border-2 border-foreground bg-primary p-2 text-primary-foreground shadow-[0_2px_0_0_theme(colors.foreground)] hover:-translate-y-0.5 transition-transform">
-            <Pencil className="h-4 w-4 text-foreground" />
+            <Plus className="h-4 w-4 text-foreground" />
           </div>
-          {!uploadingAvatar && (
-            <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-150 text-white text-xs font-bold">
-              Change
-            </div>
-          )}
         </div>
         <div className="flex flex-col gap-1 text-center sm:text-left">
           <h3 className="text-base font-bold">Profile Image</h3>
