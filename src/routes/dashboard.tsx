@@ -695,7 +695,15 @@ function Dashboard() {
 
     return (
       <Card>
-        <SectionTitle title="Customize theme" subtitle="Colors, buttons, and vibe. Premium unlocks all presets." />
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <SectionTitle title="Customize theme" subtitle="Colors, buttons, and vibe. Premium unlocks all presets." />
+          <Link
+            to="/builtinthemes"
+            className="inline-flex items-center gap-1.5 rounded-full border-2 border-foreground bg-amber-400 px-4 py-2 text-xs font-black text-foreground shadow-[2px_2px_0_0_theme(colors.foreground)] hover:-translate-y-0.5 transition-all active:translate-y-0 active:shadow-none"
+          >
+            <Sparkles className="h-3.5 w-3.5" /> Explore theme
+          </Link>
+        </div>
         <div className="mt-4 flex flex-wrap gap-2">
           {presets.map((p, i) => {
             const locked = !user!.premium && i > 1;
@@ -703,7 +711,10 @@ function Dashboard() {
               <button
                 key={p.name}
                 disabled={locked}
-                onClick={() => set(p.theme)}
+                onClick={() => {
+                  set(p.theme);
+                  update({ theme: { ...user!.theme, ...p.theme }, theme_name: p.name });
+                }}
                 className="relative flex items-center gap-2 rounded-full border-2 border-foreground bg-card px-3 py-2 text-sm font-semibold disabled:opacity-50"
               >
                 <span className="h-4 w-4 rounded-full border border-foreground" style={{ background: p.theme.bg }} />

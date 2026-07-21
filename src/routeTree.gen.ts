@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as UsernameRouteImport } from './routes/$username'
+import { Route as BuiltinthemesRouteImport } from './routes/builtinthemes'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as ExplorepricingRouteImport } from './routes/explorepricing'
 import { Route as PlandetailRouteImport } from './routes/plandetail'
@@ -26,6 +27,11 @@ const IndexRoute = IndexRouteImport.update({
 const UsernameRoute = UsernameRouteImport.update({
   id: '/$username',
   path: '/$username',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BuiltinthemesRoute = BuiltinthemesRouteImport.update({
+  id: '/builtinthemes',
+  path: '/builtinthemes',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardRoute = DashboardRouteImport.update({
@@ -62,6 +68,7 @@ const AuthModeRoute = AuthModeRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/$username': typeof UsernameRoute
+  '/builtinthemes': typeof BuiltinthemesRoute
   '/dashboard': typeof DashboardRoute
   '/explorepricing': typeof ExplorepricingRoute
   '/plandetail': typeof PlandetailRoute
@@ -72,6 +79,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/$username': typeof UsernameRoute
+  '/builtinthemes': typeof BuiltinthemesRoute
   '/dashboard': typeof DashboardRoute
   '/explorepricing': typeof ExplorepricingRoute
   '/plandetail': typeof PlandetailRoute
@@ -83,6 +91,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/$username': typeof UsernameRoute
+  '/builtinthemes': typeof BuiltinthemesRoute
   '/dashboard': typeof DashboardRoute
   '/explorepricing': typeof ExplorepricingRoute
   '/plandetail': typeof PlandetailRoute
@@ -95,6 +104,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/$username'
+    | '/builtinthemes'
     | '/dashboard'
     | '/explorepricing'
     | '/plandetail'
@@ -105,6 +115,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/$username'
+    | '/builtinthemes'
     | '/dashboard'
     | '/explorepricing'
     | '/plandetail'
@@ -115,6 +126,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/$username'
+    | '/builtinthemes'
     | '/dashboard'
     | '/explorepricing'
     | '/plandetail'
@@ -126,6 +138,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   UsernameRoute: typeof UsernameRoute
+  BuiltinthemesRoute: typeof BuiltinthemesRoute
   DashboardRoute: typeof DashboardRoute
   ExplorepricingRoute: typeof ExplorepricingRoute
   PlandetailRoute: typeof PlandetailRoute
@@ -148,6 +161,13 @@ declare module '@tanstack/react-router' {
       path: '/$username'
       fullPath: '/$username'
       preLoaderRoute: typeof UsernameRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/builtinthemes': {
+      id: '/builtinthemes'
+      path: '/builtinthemes'
+      fullPath: '/builtinthemes'
+      preLoaderRoute: typeof BuiltinthemesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard': {
@@ -198,6 +218,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   UsernameRoute: UsernameRoute,
+  BuiltinthemesRoute: BuiltinthemesRoute,
   DashboardRoute: DashboardRoute,
   ExplorepricingRoute: ExplorepricingRoute,
   PlandetailRoute: PlandetailRoute,

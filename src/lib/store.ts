@@ -41,6 +41,7 @@ export type Profile = {
   avatar: string;
   links: LinkItem[];
   theme: Theme;
+  theme_name?: string;
   premium: boolean;
   views: number;
   createdAt?: number;
