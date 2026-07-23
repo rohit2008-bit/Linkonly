@@ -683,7 +683,15 @@ function Dashboard() {
                   </div>
                   <div className="flex items-center gap-1.5">
                     <span className="rounded-full bg-muted px-2 py-1 text-xs font-semibold">{formatCompactNumber(l.clicks)} clicks</span>
-                    <a href={l.url} target="_blank" rel="noreferrer" className="grid h-8 w-8 place-items-center rounded-full hover:bg-muted"><ExternalLink className="h-4 w-4" /></a>
+                    {l.url !== "protected" ? (
+                      <a href={l.url} target="_blank" rel="noreferrer" className="grid h-8 w-8 place-items-center rounded-full hover:bg-muted" title="Open link">
+                        <ExternalLink className="h-4 w-4" />
+                      </a>
+                    ) : (
+                      <div className="grid h-8 w-8 place-items-center rounded-full opacity-30 cursor-not-allowed" title="Link is password protected">
+                        <Lock className="h-4 w-4" />
+                      </div>
+                    )}
                     <button onClick={() => setLinkToDelete(l.id)} className="grid h-8 w-8 place-items-center rounded-full hover:bg-destructive/10 hover:text-destructive cursor-pointer"><Trash2 className="h-4 w-4" /></button>
                   </div>
                 </div>
@@ -1020,7 +1028,7 @@ function UrlBar({ url }: { url: string }) {
   return (
     <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 rounded-full border-2 border-foreground bg-card px-4 py-2 shadow-[0_4px_0_0_theme(colors.foreground)] sm:flex sm:justify-between">
       <div className="min-w-0">
-        <p className="text-xs text-muted-foreground">Your LinkHub</p>
+        <p className="text-xs text-muted-foreground">Your LinkOnly</p>
         <p className="truncate text-sm font-semibold">{url}</p>
       </div>
       <div className="flex items-center gap-1.5">
@@ -1228,6 +1236,7 @@ function ProfileTab({ user, update, localName, setLocalName, localBio, setLocalB
   const [saved, setSaved] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [validationError, setValidationError] = useState("");
+  const [uploadError, setUploadError] = useState("");
 
   useEffect(() => {
     setValidationError("");
@@ -1355,6 +1364,7 @@ function ProfileTab({ user, update, localName, setLocalName, localBio, setLocalB
 
       if (res.ok) {
         const data = await res.json();
+        setUploadError("");
         // Save new avatar first
         await update({ avatar: data.secure_url });
         // Then permanently delete old image from Cloudinary if it existed
@@ -1371,13 +1381,14 @@ function ProfileTab({ user, update, localName, setLocalName, localBio, setLocalB
         console.error("Cloudinary upload failed:", errorText);
         try {
           const errorObj = JSON.parse(errorText);
-          alert(`Cloudinary upload failed: ${errorObj.error?.message || errorText}`);
+          setUploadError(errorObj.error?.message || "Upload failed. Please try again.");
         } catch (e) {
-          alert(`Cloudinary upload failed: ${errorText}`);
+          setUploadError("Upload failed. Please try again.");
         }
       }
     } catch (err) {
       console.error("Error uploading avatar:", err);
+      setUploadError("Upload failed. Please check your connection and try again.");
     } finally {
       setUploadingAvatar(false);
     }
@@ -1465,15 +1476,21 @@ function ProfileTab({ user, update, localName, setLocalName, localBio, setLocalB
               if (!file) return;
               const MAX_SIZE_MB = 5;
               if (file.size > MAX_SIZE_MB * 1024 * 1024) {
-                alert(`Image too large! Please choose a file under ${MAX_SIZE_MB}MB.\n\nYour file: ${(file.size / (1024 * 1024)).toFixed(1)}MB`);
-                e.target.value = ""; // reset so same file can retrigger if user picks another
+                setUploadError(`Image too large (${(file.size / (1024 * 1024)).toFixed(1)}MB). Please choose a file under ${MAX_SIZE_MB}MB.`);
+                e.target.value = "";
                 return;
               }
+              setUploadError("");
               onUpload(file);
             }}
           />
         </div>
       </div>
+      {uploadError && (
+        <p className="mt-2 text-xs font-bold text-rose-500 animate-fade-in flex items-center gap-1">
+          ⚠️ {uploadError}
+        </p>
+      )}
 
       <div className="mt-6 grid gap-4 sm:grid-cols-2">
         <Labeled label="Display Name">

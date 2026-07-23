@@ -63,9 +63,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "LinkHub — One link for everything you are" },
+      { title: "LinkOnly — One link for everything you are" },
       { name: "description", content: "Create a beautiful public profile that holds every link you share. Custom branding, QR codes, and analytics — no code required." },
-      { property: "og:title", content: "LinkHub — One link for everything you are" },
+      { property: "og:title", content: "LinkOnly — One link for everything you are" },
       { property: "og:description", content: "Create a beautiful public profile that holds every link you share. Custom branding, QR codes, and analytics." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
