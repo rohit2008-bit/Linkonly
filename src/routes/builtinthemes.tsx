@@ -140,8 +140,8 @@ function BuiltInThemesPage() {
                   {/* Profile Mockup inside Card */}
                   <div className="relative z-10 w-full max-w-[240px] flex flex-col items-center space-y-2">
                     {/* Mock Avatar */}
-                    <div className="h-12 w-12 rounded-full border-2 border-foreground bg-background grid place-items-center font-black text-sm shadow-[2px_2px_0_0_theme(colors.foreground)]">
-                      {user?.name?.[0]?.toUpperCase() || "A"}
+                    <div className="h-12 w-12 rounded-full border-2 border-foreground bg-background grid place-items-center font-black text-sm text-foreground shadow-[2px_2px_0_0_theme(colors.foreground)]">
+                      {user?.name?.[0]?.toUpperCase() || "R"}
                     </div>
                     {/* Mock Name */}
                     <p className="text-base font-bold truncate max-w-full" style={getFontFamily(t.theme.nameFont || t.theme.font)}>

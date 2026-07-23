@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { QRCodeCanvas } from "qrcode.react";
-import { BarChart3, Copy, ExternalLink, GripVertical, LogOut, Palette, Plus, QrCode, Trash2, Crown, Check, Eye, Pencil, User, Globe, FileText, ChevronRight, Sparkles, Lock } from "lucide-react";
+import { BarChart3, Copy, ExternalLink, GripVertical, LogOut, Palette, Plus, QrCode, Trash2, Crown, Check, Eye, Pencil, User, Globe, FileText, ChevronRight, Sparkles, Lock, ChevronUp, ChevronDown, X } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { newId, defaultTheme, getFontFamily, formatCompactNumber, type LinkItem, type Theme, type Profile } from "@/lib/store";
 import { createServerFn } from "@tanstack/react-start";
@@ -76,7 +76,15 @@ const askOpenRouter = createServerFn({ method: "POST" })
       }
 
       const data = await response.json();
-      return { success: true, text: data.choices?.[0]?.message?.content || "" };
+      let text = data.choices?.[0]?.message?.content || "";
+      
+      // Strip common openrouter free tier moderation artifacts
+      text = text.replace(/user safety\s*:\s*safe/gi, "");
+      text = text.replace(/safety\s*:\s*safe/gi, "");
+      // Clean up any double linebreaks left over
+      text = text.replace(/\n\s*\n/g, "\n").trim();
+      
+      return { success: true, text };
     } catch (err: any) {
       console.error("OpenRouter request failed:", err);
       return { success: false, error: err.message || "Request failed" };
@@ -91,7 +99,7 @@ interface AiTip {
   category: "priority" | "recommendation" | "optimization";
 }
 
-function getAiTips(links: any[], user: any): AiTip[] {
+function getAiTips(links: any[], user: any, seed: number = 0): AiTip[] {
   const tips: AiTip[] = [];
   
   // 1. YouTube position check (if user has youtube and it is not at index 0)
@@ -208,6 +216,15 @@ function getAiTips(links: any[], user: any): AiTip[] {
     });
   }
 
+  if (seed > 0) {
+    let s = seed;
+    for (let i = tips.length - 1; i > 0; i--) {
+      s = (s * 16807) % 2147483647;
+      const j = s % (i + 1);
+      [tips[i], tips[j]] = [tips[j], tips[i]];
+    }
+  }
+
   return tips.slice(0, 5);
 }
 
@@ -234,6 +251,7 @@ function Dashboard() {
   const [saved, setSaved] = useState(false);
   const [shakeTabId, setShakeTabId] = useState<string | null>(null);
   const [warningText, setWarningText] = useState("");
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   useEffect(() => {
     if (ready && !user) navigate({ to: "/auth/$mode", params: { mode: "login" } });
@@ -293,7 +311,7 @@ function Dashboard() {
             <a href={`/${user.username}`} target="_blank" rel="noreferrer" className="hidden items-center gap-1.5 rounded-full border-2 border-foreground bg-card px-3 py-1.5 text-xs font-semibold hover:bg-accent/30 sm:inline-flex">
               <Eye className="h-3.5 w-3.5" /> View my page
             </a>
-            <button onClick={logout} className="inline-flex items-center gap-1.5 rounded-full border-2 border-foreground bg-card px-3 py-1.5 text-xs font-semibold hover:bg-accent/30">
+            <button onClick={() => setShowLogoutConfirm(true)} className="inline-flex items-center gap-1.5 rounded-full border-2 border-foreground bg-card px-3 py-1.5 text-xs font-semibold hover:bg-accent/30">
               <LogOut className="h-3.5 w-3.5" /> Log out
             </button>
           </div>
@@ -352,6 +370,33 @@ function Dashboard() {
           </div>
         </div>
       </div>
+
+      {/* Logout Confirmation Popup */}
+      {showLogoutConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4 animate-fade-in">
+          <div className="w-full max-w-sm rounded-3xl border-2 border-foreground bg-card p-6 shadow-[8px_8px_0_0_theme(colors.foreground)]">
+            <h2 className="text-xl font-bold font-display mb-2">Log out</h2>
+            <p className="text-sm text-muted-foreground mb-6">Are you sure you want to log out of your account?</p>
+            <div className="flex gap-3">
+              <button 
+                onClick={() => setShowLogoutConfirm(false)}
+                className="flex-1 rounded-full border-2 border-foreground bg-card px-4 py-2.5 text-sm font-semibold hover:bg-accent/30 transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={() => {
+                  setShowLogoutConfirm(false);
+                  logout();
+                }}
+                className="flex-1 rounded-full border-2 border-foreground bg-rose-500 px-4 py-2.5 text-sm font-bold text-white shadow-[2px_2px_0_0_theme(colors.foreground)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-none transition-all cursor-pointer"
+              >
+                Yes, log out
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 
@@ -368,8 +413,11 @@ function Dashboard() {
           <Eye className="h-3 w-3" />
           Live Page
         </a>
-        <div className="rounded-3xl border-2 border-foreground p-3 shadow-[0_10px_0_0_theme(colors.foreground)]" style={{ background: t.bg }}>
-          <div className="max-h-[560px] overflow-y-auto rounded-2xl px-5 py-6" style={{ background: t.bg, color: t.text }}>
+        <div 
+          className="rounded-[32px] border-2 border-foreground shadow-[0_10px_0_0_theme(colors.foreground)] overflow-hidden transition-all"
+          style={{ background: t.bg, color: t.text }}
+        >
+          <div className="max-h-[580px] overflow-y-auto px-5 py-8">
             <div className="flex flex-col items-center text-center">
               <div className="relative">
                 <Avatar url={user!.avatar} name={localName} />
@@ -414,6 +462,8 @@ function Dashboard() {
     const [tempUrl, setTempUrl] = useState("");
     const [editError, setEditError] = useState("");
     const [showAiTips, setShowAiTips] = useState(false);
+    const [aiTipsSeed, setAiTipsSeed] = useState(0);
+    const [linkToDelete, setLinkToDelete] = useState<string | null>(null);
     const aiTipsRef = useRef<HTMLDivElement | null>(null);
 
     const add = () => {
@@ -464,6 +514,9 @@ function Dashboard() {
                 if (!user!.premium) {
                   navigate({ to: "/pricing" });
                   return;
+                }
+                if (!showAiTips) {
+                  setAiTipsSeed(s => s + 1);
                 }
                 setShowAiTips(true);
                 setTimeout(() => {
@@ -580,10 +633,14 @@ function Dashboard() {
 
               return (
                 <div key={l.id} className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 rounded-2xl border-2 border-foreground bg-card p-3">
-                  <div className="flex flex-col">
-                    <button onClick={() => move(l.id, -1)} className="text-xs text-muted-foreground hover:text-foreground">▲</button>
-                    <GripVertical className="h-4 w-4 text-muted-foreground" />
-                    <button onClick={() => move(l.id, 1)} className="text-xs text-muted-foreground hover:text-foreground">▼</button>
+                  <div className="flex flex-col items-center justify-between rounded-xl border-2 border-dashed border-foreground/20 bg-muted/30 p-0.5 shrink-0">
+                    <button onClick={() => move(l.id, -1)} className="rounded-lg p-1 text-muted-foreground hover:bg-foreground hover:text-background transition-colors cursor-pointer" title="Move Up">
+                      <ChevronUp className="h-4 w-4" />
+                    </button>
+                    <div className="h-[2px] w-4 bg-foreground/10 rounded-full my-0.5" />
+                    <button onClick={() => move(l.id, 1)} className="rounded-lg p-1 text-muted-foreground hover:bg-foreground hover:text-background transition-colors cursor-pointer" title="Move Down">
+                      <ChevronDown className="h-4 w-4" />
+                    </button>
                   </div>
                   <div className="flex items-center gap-3 min-w-0">
                     <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border-2 border-foreground bg-muted p-1">
@@ -611,7 +668,7 @@ function Dashboard() {
                   <div className="flex items-center gap-1.5">
                     <span className="rounded-full bg-muted px-2 py-1 text-xs font-semibold">{formatCompactNumber(l.clicks)} clicks</span>
                     <a href={l.url} target="_blank" rel="noreferrer" className="grid h-8 w-8 place-items-center rounded-full hover:bg-muted"><ExternalLink className="h-4 w-4" /></a>
-                    <button onClick={() => remove(l.id)} className="grid h-8 w-8 place-items-center rounded-full hover:bg-destructive/10 hover:text-destructive cursor-pointer"><Trash2 className="h-4 w-4" /></button>
+                    <button onClick={() => setLinkToDelete(l.id)} className="grid h-8 w-8 place-items-center rounded-full hover:bg-destructive/10 hover:text-destructive cursor-pointer"><Trash2 className="h-4 w-4" /></button>
                   </div>
                 </div>
               );
@@ -621,19 +678,26 @@ function Dashboard() {
 
         {/* AI Tips Section below */}
         {showAiTips && (
-          <div ref={aiTipsRef} className="mt-8 rounded-3xl border-2 border-foreground bg-card p-5 sm:p-6 shadow-[0_8px_0_0_theme(colors.foreground)] scroll-mt-6 animate-fade-in">
-            <div className="flex items-center gap-2 mb-4 border-b-2 border-dashed border-foreground/10 pb-3">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg border-2 border-foreground bg-blue-100">
+          <div ref={aiTipsRef} className="mt-8 rounded-3xl border-2 border-foreground bg-card p-5 sm:p-6 shadow-[0_8px_0_0_theme(colors.foreground)] scroll-mt-6 animate-fade-in relative">
+            <button 
+              onClick={() => setShowAiTips(false)}
+              className="absolute top-4 right-4 grid h-8 w-8 place-items-center rounded-full border-2 border-transparent hover:border-foreground hover:bg-muted text-muted-foreground hover:text-foreground transition-all cursor-pointer"
+              title="Close Tips"
+            >
+              <X className="h-4 w-4" />
+            </button>
+            <div className="flex items-center gap-2 mb-4 border-b-2 border-dashed border-foreground/10 pb-3 pr-10">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg border-2 border-foreground bg-blue-100 shrink-0">
                 <Sparkles className="h-4 w-4 stroke-[2.5] text-blue-700" />
               </div>
-              <div>
-                <h3 className="text-sm font-black uppercase tracking-wider text-foreground">💡 Profile Optimization Tips</h3>
-                <p className="text-[10px] text-muted-foreground font-semibold">AI-Generated suggestions to maximize your Linkonly CTR</p>
+              <div className="min-w-0">
+                <h3 className="text-sm font-black uppercase tracking-wider text-foreground truncate">💡 Profile Optimization Tips</h3>
+                <p className="text-[10px] text-muted-foreground font-semibold truncate">AI-Generated suggestions to maximize your Linkonly CTR</p>
               </div>
             </div>
 
             <div className="space-y-3.5">
-              {getAiTips(user!.links, user!).map((tip, idx) => (
+              {getAiTips(user!.links, user!, aiTipsSeed).map((tip, idx) => (
                 <div key={tip.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl border-2 border-foreground bg-background p-4 shadow-[3px_3px_0_0_theme(colors.foreground)] hover:-translate-y-0.5 transition-all">
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
@@ -659,6 +723,33 @@ function Dashboard() {
                   </div>
                 </div>
               ))}
+            </div>
+          </div>
+        )}
+
+        {/* Link Deletion Confirmation Popup */}
+        {linkToDelete && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4 animate-fade-in">
+            <div className="w-full max-w-sm rounded-3xl border-2 border-foreground bg-card p-6 shadow-[8px_8px_0_0_theme(colors.foreground)]">
+              <h2 className="text-xl font-bold font-display mb-2">Delete link</h2>
+              <p className="text-sm text-muted-foreground mb-6">Are you sure you want to delete this link? This action cannot be undone.</p>
+              <div className="flex gap-3">
+                <button 
+                  onClick={() => setLinkToDelete(null)}
+                  className="flex-1 rounded-full border-2 border-foreground bg-card px-4 py-2.5 text-sm font-semibold hover:bg-accent/30 transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button 
+                  onClick={() => {
+                    remove(linkToDelete);
+                    setLinkToDelete(null);
+                  }}
+                  className="flex-1 rounded-full border-2 border-foreground bg-rose-500 px-4 py-2.5 text-sm font-bold text-white shadow-[2px_2px_0_0_theme(colors.foreground)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-none transition-all cursor-pointer"
+                >
+                  Delete
+                </button>
+              </div>
             </div>
           </div>
         )}
@@ -725,7 +816,6 @@ function Dashboard() {
           })}
         </div>
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
-          <ColorField label="Background" value={t.bg} onChange={(v) => set({ bg: v })} disabled={!user!.premium} />
           <ColorField label="Text" value={t.text} onChange={(v) => set({ text: v })} disabled={!user!.premium} />
           <ColorField label="Button background" value={t.buttonBg} onChange={(v) => set({ buttonBg: v })} disabled={!user!.premium} />
           <ColorField label="Button text" value={t.buttonText} onChange={(v) => set({ buttonText: v })} disabled={!user!.premium} />
@@ -1457,7 +1547,7 @@ function ProfileTab({ user, update, localName, setLocalName, localBio, setLocalB
                     setAiSuccess(false);
                     try {
                       const res = await askOpenRouter({
-                        data: `Write a short, engaging, and professional link-in-bio description (maximum 150 characters, no hashtags, no emojis except maybe 1 context-appropriate one) for someone who is: ${aiKeywords.trim()}`
+                        data: `Write a short, engaging, and professional link-in-bio description (maximum 150 characters, no hashtags, no emojis except maybe 1 context-appropriate one) for someone who is: ${aiKeywords.trim()}. IMPORTANT: Return ONLY the bio text itself. Do not include quotes, safety messages like "user safety: safe", or conversational filler.`
                       });
                       if (res.success && res.text) {
                         setLocalBio(res.text.trim().slice(0, 200));
