@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useAuth } from "@/lib/auth";
 import { Lock, Unlock, ArrowLeft, ShieldCheck, Check } from "lucide-react";
 import { hashPasswordServer } from "@/lib/password";
@@ -14,10 +14,11 @@ function SetPasswordPage() {
   const { user, ready, update } = useAuth();
   const navigate = useNavigate();
 
-  if (ready && !user) {
-    navigate({ to: "/auth/$mode", params: { mode: "login" }, replace: true });
-    return null;
-  }
+  useEffect(() => {
+    if (ready && !user) {
+      navigate({ to: "/auth/$mode", params: { mode: "login" }, replace: true });
+    }
+  }, [ready, user, navigate]);
 
   if (!ready || !user) {
     return <div className="grid min-h-screen place-items-center">Loading...</div>;

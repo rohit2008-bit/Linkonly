@@ -349,7 +349,7 @@ function Dashboard() {
                 )}
               </div>
               <div className="mt-4">
-                {tab === "links" && <LinksTab />}
+                {tab === "links" && <LinksTab user={user} update={update} />}
                 {tab === "profile" && (
                   <ProfileTab 
                     user={user} 
@@ -364,7 +364,7 @@ function Dashboard() {
                 )}
                 {tab === "theme" && <ThemeTab />}
                 {tab === "qr" && <QRTab url={publicUrl} />}
-                {tab === "analytics" && <AnalyticsTab />}
+                {tab === "analytics" && <AnalyticsTab user={user} />}
               </div>
             </div>
           </div>
@@ -457,329 +457,7 @@ function Dashboard() {
     );
   }
 
-  function LinksTab() {
-    const [title, setTitle] = useState("");
-    const [url, setUrl] = useState("");
-    const [error, setError] = useState("");
-    const [editingLinkId, setEditingLinkId] = useState<string | null>(null);
-    const [tempTitle, setTempTitle] = useState("");
-    const [tempUrl, setTempUrl] = useState("");
-    const [editError, setEditError] = useState("");
-    const [showAiTips, setShowAiTips] = useState(false);
-    const [aiTipsSeed, setAiTipsSeed] = useState(0);
-    const [linkToDelete, setLinkToDelete] = useState<string | null>(null);
-    const aiTipsRef = useRef<HTMLDivElement | null>(null);
 
-    const add = () => {
-      setError("");
-      const cleanTitle = title.trim();
-      const cleanUrl = url.trim();
-
-      if (!cleanTitle || !cleanUrl) {
-        setError("Both Title and URL are required.");
-        return;
-      }
-
-      if (cleanTitle.length > 20) {
-        setError("Title cannot exceed 20 characters.");
-        return;
-      }
-
-      if (!isValidUrl(cleanUrl)) {
-        setError("Please enter a valid, single URL (no spaces or duplicate URLs).");
-        return;
-      }
-
-      const link: LinkItem = { id: newId(), title: cleanTitle, url: normalizeUrl(cleanUrl), clicks: 0 };
-      update({ links: [...user!.links, link] });
-      setTitle(""); setUrl("");
-    };
-    const remove = (id: string) => update({ links: user!.links.filter((l) => l.id !== id) });
-    const move = (id: string, dir: -1 | 1) => {
-      const list = [...user!.links];
-      const i = list.findIndex((l) => l.id === id);
-      const j = i + dir;
-      if (i < 0 || j < 0 || j >= list.length) return;
-      [list[i], list[j]] = [list[j], list[i]];
-      update({ links: list });
-    };
-    const edit = (id: string, patch: Partial<LinkItem>) => {
-      update({ links: user!.links.map((l) => (l.id === id ? { ...l, ...patch } : l)) });
-    };
-
-    return (
-      <div className="space-y-6">
-        <Card>
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-dashed border-foreground/10 pb-3 mb-2">
-            <SectionTitle title="Your links" subtitle="Add unlimited links — they'll appear on your public profile." />
-            <div className="flex flex-wrap gap-2 sm:self-center">
-              <button
-                type="button"
-                onClick={() => {
-                  navigate({ to: "/setpassword" });
-                }}
-                className="inline-flex items-center gap-1.5 rounded-full border-2 border-foreground bg-rose-100 px-3.5 py-1.5 text-xs font-black text-rose-700 shadow-[2px_2px_0_0_theme(colors.foreground)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-none transition-all cursor-pointer w-fit"
-              >
-                <Lock className="h-4 w-4 text-rose-700 stroke-[2.5]" />
-                <span>Protect</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  if (!user!.premium) {
-                    navigate({ to: "/pricing" });
-                    return;
-                  }
-                  if (!showAiTips) {
-                    setAiTipsSeed(s => s + 1);
-                  }
-                  setShowAiTips(true);
-                  setTimeout(() => {
-                    aiTipsRef.current?.scrollIntoView({ behavior: 'smooth' });
-                  }, 100);
-                }}
-                className="inline-flex items-center gap-1.5 rounded-full border-2 border-foreground bg-blue-100 px-3.5 py-1.5 text-xs font-black text-blue-700 shadow-[2px_2px_0_0_theme(colors.foreground)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-none transition-all cursor-pointer w-fit"
-              >
-                <Sparkles className="h-3.5 w-3.5 fill-blue-700 text-blue-700 animate-pulse animate-duration-1000" />
-                <span>Ai tips</span>
-              </button>
-            </div>
-          </div>
-
-          <div className="mt-4 grid grid-cols-1 gap-2 rounded-2xl border-2 border-dashed border-foreground/30 p-3 sm:grid-cols-[1fr_1.4fr_auto]">
-            <input 
-              value={title} 
-              onChange={(e) => setTitle(e.target.value.slice(0, 20))} 
-              maxLength={20}
-              placeholder="Title (e.g. My YouTube)" 
-              className="rounded-full border-2 border-foreground bg-card px-4 py-2.5 text-sm outline-none" 
-            />
-            <input 
-              value={url} 
-              onChange={(e) => setUrl(e.target.value)} 
-              placeholder="https://…" 
-              className="rounded-full border-2 border-foreground bg-card px-4 py-2.5 text-sm outline-none" 
-            />
-            <button onClick={add} className="inline-flex items-center justify-center gap-1.5 rounded-full bg-foreground px-4 py-2.5 text-sm font-semibold text-background"><Plus className="h-4 w-4" /> Add link</button>
-          </div>
-
-          {error && (
-            <p className="mt-2 text-xs font-bold text-rose-500 animate-fade-in px-1">
-              ⚠️ {error}
-            </p>
-          )}
-
-          <div className="mt-4 space-y-2">
-            {user!.links.map((l) => {
-              const isEditing = l.id === editingLinkId;
-              if (isEditing) {
-                return (
-                  <div key={l.id} className="flex flex-col gap-3 rounded-2xl border-2 border-foreground bg-card p-4 shadow-[0_3px_0_0_theme(colors.foreground)] animate-fade-in">
-                    <div className="flex items-start gap-3">
-                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border-2 border-foreground bg-muted p-1">
-                        <LinkIcon url={tempUrl} className="h-8 w-8 object-contain" />
-                      </div>
-                      <div className="min-w-0 flex-1 space-y-2.5">
-                        <div>
-                          <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block mb-1">Link Title</label>
-                          <input 
-                            value={tempTitle} 
-                            onChange={(e) => setTempTitle(e.target.value.slice(0, 20))} 
-                            maxLength={20}
-                            placeholder="Link Title"
-                            className="w-full rounded-full border-2 border-foreground bg-background px-4 py-2 text-sm font-semibold outline-none focus:ring-2 focus:ring-ring" 
-                          />
-                        </div>
-                        <div>
-                          <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block mb-1">URL Destination</label>
-                          <input 
-                            value={tempUrl} 
-                            onChange={(e) => setTempUrl(e.target.value)} 
-                            placeholder="https://..."
-                            className={`w-full rounded-full border-2 border-foreground bg-background px-4 py-2 text-xs outline-none focus:ring-2 focus:ring-ring ${isValidUrl(tempUrl) ? "" : "border-rose-500 text-rose-500 font-bold"}`} 
-                          />
-                        </div>
-                        {editError && (
-                          <span className="block text-xs font-bold text-rose-500 mt-1">⚠️ {editError}</span>
-                        )}
-                        {!isValidUrl(tempUrl) && (
-                          <span className="block text-xs font-bold text-rose-500 mt-1">⚠️ Multiple links or invalid URL format detected</span>
-                        )}
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center justify-end gap-2 border-t border-dashed border-foreground/10 pt-3">
-                      <button 
-                        onClick={() => {
-                          const cleanT = tempTitle.trim();
-                          const cleanU = tempUrl.trim();
-                          if (!cleanT || !cleanU) {
-                            setEditError("Title and URL are required.");
-                            return;
-                          }
-                          if (cleanT.length > 20) {
-                            setEditError("Title cannot exceed 20 characters.");
-                            return;
-                          }
-                          if (!isValidUrl(cleanU)) {
-                            setEditError("Invalid URL format.");
-                            return;
-                          }
-                          edit(l.id, { title: cleanT, url: normalizeUrl(cleanU) });
-                          setEditingLinkId(null);
-                          setEditError("");
-                        }} 
-                        className="rounded-full bg-foreground px-5 py-2 text-xs font-bold text-background hover:opacity-90 flex items-center gap-1.5 cursor-pointer shadow-[0_2px_0_0_theme(colors.foreground)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-none transition-all"
-                      >
-                        <Check className="h-3.5 w-3.5 stroke-[3]" /> Save Changes
-                      </button>
-                      <button 
-                        onClick={() => {
-                          setEditingLinkId(null);
-                          setEditError("");
-                        }} 
-                        className="rounded-full border-2 border-foreground bg-card px-5 py-1.5 text-xs font-bold hover:bg-muted cursor-pointer shadow-[0_2px_0_0_theme(colors.foreground)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-none transition-all"
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  </div>
-                );
-              }
-
-              return (
-                <div key={l.id} className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 rounded-2xl border-2 border-foreground bg-card p-3">
-                  <div className="flex flex-col items-center justify-between rounded-xl border-2 border-dashed border-foreground/20 bg-muted/30 p-0.5 shrink-0">
-                    <button onClick={() => move(l.id, -1)} className="rounded-lg p-1 text-muted-foreground hover:bg-foreground hover:text-background transition-colors cursor-pointer" title="Move Up">
-                      <ChevronUp className="h-4 w-4" />
-                    </button>
-                    <div className="h-[2px] w-4 bg-foreground/10 rounded-full my-0.5" />
-                    <button onClick={() => move(l.id, 1)} className="rounded-lg p-1 text-muted-foreground hover:bg-foreground hover:text-background transition-colors cursor-pointer" title="Move Down">
-                      <ChevronDown className="h-4 w-4" />
-                    </button>
-                  </div>
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border-2 border-foreground bg-muted p-1">
-                      <LinkIcon url={l.url} className="h-6 w-6 object-contain" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2">
-                        <p className="truncate text-sm font-bold text-foreground">{l.title}</p>
-                        <button 
-                          onClick={() => {
-                            setEditingLinkId(l.id);
-                            setTempTitle(l.title);
-                            setTempUrl(l.url);
-                            setEditError("");
-                          }}
-                          className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full hover:bg-muted text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
-                          title="Edit link"
-                        >
-                          <Pencil className="h-3.5 w-3.5" />
-                        </button>
-                      </div>
-                      <p className="truncate text-xs text-muted-foreground">{l.url}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="rounded-full bg-muted px-2 py-1 text-xs font-semibold">{formatCompactNumber(l.clicks)} clicks</span>
-                    {l.url !== "protected" ? (
-                      <a href={l.url} target="_blank" rel="noreferrer" className="grid h-8 w-8 place-items-center rounded-full hover:bg-muted" title="Open link">
-                        <ExternalLink className="h-4 w-4" />
-                      </a>
-                    ) : (
-                      <div className="grid h-8 w-8 place-items-center rounded-full opacity-30 cursor-not-allowed" title="Link is password protected">
-                        <Lock className="h-4 w-4" />
-                      </div>
-                    )}
-                    <button onClick={() => setLinkToDelete(l.id)} className="grid h-8 w-8 place-items-center rounded-full hover:bg-destructive/10 hover:text-destructive cursor-pointer"><Trash2 className="h-4 w-4" /></button>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </Card>
-
-        {/* AI Tips Section below */}
-        {showAiTips && (
-          <div ref={aiTipsRef} className="w-[95%] mx-auto mt-8 rounded-3xl border-2 border-foreground bg-card p-5 sm:p-6 shadow-[0_8px_0_0_theme(colors.foreground)] scroll-mt-6 animate-fade-in relative">
-            <button 
-              onClick={() => setShowAiTips(false)}
-              className="absolute top-4 right-4 grid h-8 w-8 place-items-center rounded-full border-2 border-transparent hover:border-foreground hover:bg-muted text-muted-foreground hover:text-foreground transition-all cursor-pointer"
-              title="Close Tips"
-            >
-              <X className="h-4 w-4" />
-            </button>
-            <div className="flex items-center gap-2 mb-4 border-b-2 border-dashed border-foreground/10 pb-3 pr-10">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg border-2 border-foreground bg-blue-100 shrink-0">
-                <Sparkles className="h-4 w-4 stroke-[2.5] text-blue-700" />
-              </div>
-              <div className="min-w-0">
-                <h3 className="text-sm font-black uppercase tracking-wider text-foreground truncate">💡 Profile Optimization Tips</h3>
-                <p className="text-[10px] text-muted-foreground font-semibold truncate">AI-Generated suggestions to maximize your Linkonly CTR</p>
-              </div>
-            </div>
-
-            <div className="space-y-3.5">
-              {getAiTips(user!.links, user!, aiTipsSeed).map((tip, idx) => (
-                <div key={tip.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl border-2 border-foreground bg-background p-4 shadow-[3px_3px_0_0_theme(colors.foreground)] hover:-translate-y-0.5 transition-all">
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <span className="flex h-5 w-5 items-center justify-center rounded-full bg-foreground text-[10px] font-bold text-background">
-                        {idx + 1}
-                      </span>
-                      <span className="text-sm font-bold text-foreground">{tip.title}</span>
-                      <span className={`rounded-full px-2 py-0.5 text-[9px] font-black uppercase border border-foreground ${
-                        tip.category === 'priority' ? 'bg-rose-100 text-rose-700' :
-                        tip.category === 'optimization' ? 'bg-emerald-100 text-emerald-700' :
-                        'bg-amber-100 text-amber-700'
-                      }`}>
-                        {tip.category}
-                      </span>
-                    </div>
-                    <p className="text-xs text-muted-foreground pl-7 leading-relaxed">{tip.description}</p>
-                  </div>
-                  
-                  <div className="shrink-0 flex items-center justify-end pl-7 sm:pl-0">
-                    <span className="inline-block rounded-full border-2 border-foreground bg-blue-100 px-3 py-1 text-xs font-black text-blue-700 shadow-[2px_2px_0_0_theme(colors.foreground)]">
-                      {tip.impact}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Link Deletion Confirmation Popup */}
-        {linkToDelete && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4 animate-fade-in">
-            <div className="w-full max-w-sm rounded-3xl border-2 border-foreground bg-card p-6 shadow-[8px_8px_0_0_theme(colors.foreground)]">
-              <h2 className="text-xl font-bold font-display mb-2">Delete link</h2>
-              <p className="text-sm text-muted-foreground mb-6">Are you sure you want to delete this link? This action cannot be undone.</p>
-              <div className="flex gap-3">
-                <button 
-                  onClick={() => setLinkToDelete(null)}
-                  className="flex-1 rounded-full border-2 border-foreground bg-card px-4 py-2.5 text-sm font-semibold hover:bg-accent/30 transition-colors cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button 
-                  onClick={() => {
-                    remove(linkToDelete);
-                    setLinkToDelete(null);
-                  }}
-                  className="flex-1 rounded-full border-2 border-foreground bg-rose-500 px-4 py-2.5 text-sm font-bold text-white shadow-[2px_2px_0_0_theme(colors.foreground)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-none transition-all cursor-pointer"
-                >
-                  Delete
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-    );
-  }
 
 
 
@@ -912,60 +590,397 @@ function Dashboard() {
     );
   }
 
-  function AnalyticsTab() {
-    const totalClicks = useMemo(() => user!.links.reduce((s, l) => s + (l.clicks || 0), 0), [user]);
-    const top = useMemo(() => [...user!.links].sort((a, b) => b.clicks - a.clicks).slice(0, 5), [user]);
 
-    return (
+}
+
+interface LinksTabProps {
+  user: Profile;
+  update: (patch: Partial<Profile>) => Promise<void>;
+}
+
+function LinksTab({ user, update }: LinksTabProps) {
+  const navigate = useNavigate();
+  const [title, setTitle] = useState("");
+  const [url, setUrl] = useState("");
+  const [error, setError] = useState("");
+  const [editingLinkId, setEditingLinkId] = useState<string | null>(null);
+  const [tempTitle, setTempTitle] = useState("");
+  const [tempUrl, setTempUrl] = useState("");
+  const [editError, setEditError] = useState("");
+  const [showAiTips, setShowAiTips] = useState(false);
+  const [aiTipsSeed, setAiTipsSeed] = useState(0);
+  const [linkToDelete, setLinkToDelete] = useState<string | null>(null);
+  const aiTipsRef = useRef<HTMLDivElement | null>(null);
+
+  const add = () => {
+    setError("");
+    const cleanTitle = title.trim();
+    const cleanUrl = url.trim();
+
+    if (!cleanTitle || !cleanUrl) {
+      setError("Both Title and URL are required.");
+      return;
+    }
+
+    if (cleanTitle.length > 20) {
+      setError("Title cannot exceed 20 characters.");
+      return;
+    }
+
+    if (!isValidUrl(cleanUrl)) {
+      setError("Please enter a valid, single URL (no spaces or duplicate URLs).");
+      return;
+    }
+
+    const link: LinkItem = { id: newId(), title: cleanTitle, url: normalizeUrl(cleanUrl), clicks: 0 };
+    update({ links: [...user.links, link] });
+    setTitle(""); setUrl("");
+  };
+  const remove = (id: string) => update({ links: user.links.filter((l) => l.id !== id) });
+  const move = (id: string, dir: -1 | 1) => {
+    const list = [...user.links];
+    const i = list.findIndex((l) => l.id === id);
+    const j = i + dir;
+    if (i < 0 || j < 0 || j >= list.length) return;
+    [list[i], list[j]] = [list[j], list[i]];
+    update({ links: list });
+  };
+  const edit = (id: string, patch: Partial<LinkItem>) => {
+    update({ links: user.links.map((l) => (l.id === id ? { ...l, ...patch } : l)) });
+  };
+
+  return (
+    <div className="space-y-6">
       <Card>
-        <SectionTitle title="Analytics" subtitle="Real numbers from your public profile." />
-        <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
-          <Stat label="Profile views" value={user!.views} />
-          <Stat label="Total clicks" value={totalClicks} />
-          <Stat label="Links" value={user!.links.length} />
-        </div>
-        <div className="mt-6">
-          <p className="mb-2 text-sm font-semibold">Top links</p>
-          {top.length === 0 && <p className="text-sm text-muted-foreground">No clicks yet. Share your link to get started.</p>}
-          <div className="space-y-2">
-            {top.map((l) => {
-              const pct = totalClicks ? Math.round((l.clicks / totalClicks) * 100) : 0;
-              return (
-                <div key={l.id} className="rounded-2xl border-2 border-foreground bg-card p-3">
-                  <div className="flex items-center justify-between gap-3 text-sm">
-                    <span className="truncate font-semibold">{l.title}</span>
-                    <span className="text-xs font-bold text-muted-foreground">{formatCompactNumber(l.clicks)} clicks · {pct}%</span>
-                  </div>
-                  <div className="mt-2 h-2 overflow-hidden rounded-full bg-muted">
-                    <div className="h-full bg-foreground" style={{ width: `${pct}%` }} />
-                  </div>
-                </div>
-              );
-            })}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-dashed border-foreground/10 pb-3 mb-2">
+          <SectionTitle title="Your links" subtitle="Add unlimited links — they'll appear on your public profile." />
+          <div className="flex flex-wrap gap-2 sm:self-center">
+            <button
+              type="button"
+              onClick={() => {
+                navigate({ to: "/setpassword" });
+              }}
+              className="inline-flex items-center gap-1.5 rounded-full border-2 border-foreground bg-rose-100 px-3.5 py-1.5 text-xs font-black text-rose-700 shadow-[2px_2px_0_0_theme(colors.foreground)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-none transition-all cursor-pointer w-fit"
+            >
+              <Lock className="h-4 w-4 text-rose-700 stroke-[2.5]" />
+              <span>Protect</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                if (!user.premium) {
+                  navigate({ to: "/pricing" });
+                  return;
+                }
+                if (!showAiTips) {
+                  setAiTipsSeed(s => s + 1);
+                }
+                setShowAiTips(true);
+                setTimeout(() => {
+                  aiTipsRef.current?.scrollIntoView({ behavior: 'smooth' });
+                }, 100);
+              }}
+              className="inline-flex items-center gap-1.5 rounded-full border-2 border-foreground bg-blue-100 px-3.5 py-1.5 text-xs font-black text-blue-700 shadow-[2px_2px_0_0_theme(colors.foreground)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-none transition-all cursor-pointer w-fit"
+            >
+              <Sparkles className="h-3.5 w-3.5 fill-blue-700 text-blue-700 animate-pulse animate-duration-1000" />
+              <span>Ai tips</span>
+            </button>
           </div>
         </div>
 
-        <div className="mt-6 border-t-2 border-dashed border-foreground/10 pt-6">
-          <Link
-            to="/proanalytics"
-            className="flex items-center justify-between rounded-2xl border-2 border-foreground bg-card p-4 hover:bg-muted transition-all hover:-translate-y-0.5"
-          >
-            <div className="flex items-center gap-2.5">
-              <Crown className="h-5 w-5 text-amber-500 fill-amber-500 shrink-0 animate-pulse" />
-              <div className="text-left">
-                <p className="font-bold text-sm">Advance Analytics for premium users</p>
-                {!user!.premium && (
-                  <p className="text-xs text-muted-foreground mt-0.5">Unlock geo-tracking, custom referrers, and visitor device metrics.</p>
-                )}
+        <div className="mt-4 grid grid-cols-1 gap-2 rounded-2xl border-2 border-dashed border-foreground/30 p-3 sm:grid-cols-[1fr_1.4fr_auto]">
+          <input 
+            value={title} 
+            onChange={(e) => setTitle(e.target.value.slice(0, 20))} 
+            maxLength={20}
+            placeholder="Title (e.g. My YouTube)" 
+            className="rounded-full border-2 border-foreground bg-card px-4 py-2.5 text-sm outline-none" 
+          />
+          <input 
+            value={url} 
+            onChange={(e) => setUrl(e.target.value)} 
+            placeholder="https://…" 
+            className="rounded-full border-2 border-foreground bg-card px-4 py-2.5 text-sm outline-none" 
+          />
+          <button onClick={add} className="inline-flex items-center justify-center gap-1.5 rounded-full bg-foreground px-4 py-2.5 text-sm font-semibold text-background"><Plus className="h-4 w-4" /> Add link</button>
+        </div>
+
+        {error && (
+          <p className="mt-2 text-xs font-bold text-rose-500 animate-fade-in px-1">
+            ⚠️ {error}
+          </p>
+        )}
+
+        <div className="mt-4 space-y-2">
+          {user.links.map((l) => {
+            const isEditing = l.id === editingLinkId;
+            if (isEditing) {
+              return (
+                <div key={l.id} className="flex flex-col gap-3 rounded-2xl border-2 border-foreground bg-card p-4 shadow-[0_3px_0_0_theme(colors.foreground)] animate-fade-in">
+                  <div className="flex items-start gap-3">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border-2 border-foreground bg-muted p-1">
+                      <LinkIcon url={tempUrl} className="h-8 w-8 object-contain" />
+                    </div>
+                    <div className="min-w-0 flex-1 space-y-2.5">
+                      <div>
+                        <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block mb-1">Link Title</label>
+                        <input 
+                          value={tempTitle} 
+                          onChange={(e) => setTempTitle(e.target.value.slice(0, 20))} 
+                          maxLength={20}
+                          placeholder="Link Title"
+                          className="w-full rounded-full border-2 border-foreground bg-background px-4 py-2 text-sm font-semibold outline-none focus:ring-2 focus:ring-ring" 
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block mb-1">URL Destination</label>
+                        <input 
+                          value={tempUrl} 
+                          onChange={(e) => setTempUrl(e.target.value)} 
+                          placeholder="https://..."
+                          className={`w-full rounded-full border-2 border-foreground bg-background px-4 py-2 text-xs outline-none focus:ring-2 focus:ring-ring ${isValidUrl(tempUrl) ? "" : "border-rose-500 text-rose-500 font-bold"}`} 
+                        />
+                      </div>
+                      {editError && (
+                        <span className="block text-xs font-bold text-rose-500 mt-1">⚠️ {editError}</span>
+                      )}
+                      {!isValidUrl(tempUrl) && (
+                        <span className="block text-xs font-bold text-rose-500 mt-1">⚠️ Multiple links or invalid URL format detected</span>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center justify-end gap-2 border-t border-dashed border-foreground/10 pt-3">
+                    <button 
+                      onClick={() => {
+                        const cleanT = tempTitle.trim();
+                        const cleanU = tempUrl.trim();
+                        if (!cleanT || !cleanU) {
+                          setEditError("Title and URL are required.");
+                          return;
+                        }
+                        if (cleanT.length > 20) {
+                          setEditError("Title cannot exceed 20 characters.");
+                          return;
+                        }
+                        if (!isValidUrl(cleanU)) {
+                          setEditError("Invalid URL format.");
+                          return;
+                        }
+                        edit(l.id, { title: cleanT, url: normalizeUrl(cleanU) });
+                        setEditingLinkId(null);
+                        setEditError("");
+                      }} 
+                      className="rounded-full bg-foreground px-5 py-2 text-xs font-bold text-background hover:opacity-90 flex items-center gap-1.5 cursor-pointer shadow-[0_2px_0_0_theme(colors.foreground)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-none transition-all"
+                    >
+                      <Check className="h-3.5 w-3.5 stroke-[3]" /> Save Changes
+                    </button>
+                    <button 
+                      onClick={() => {
+                        setEditingLinkId(null);
+                        setEditError("");
+                      }} 
+                      className="rounded-full border-2 border-foreground bg-card px-5 py-1.5 text-xs font-bold hover:bg-muted cursor-pointer shadow-[0_2px_0_0_theme(colors.foreground)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-none transition-all"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              );
+            }
+
+            return (
+              <div key={l.id} className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 rounded-2xl border-2 border-foreground bg-card p-3">
+                <div className="flex flex-col items-center justify-between rounded-xl border-2 border-dashed border-foreground/20 bg-muted/30 p-0.5 shrink-0">
+                  <button onClick={() => move(l.id, -1)} className="rounded-lg p-1 text-muted-foreground hover:bg-foreground hover:text-background transition-colors cursor-pointer" title="Move Up">
+                    <ChevronUp className="h-4 w-4" />
+                  </button>
+                  <div className="h-[2px] w-4 bg-foreground/10 rounded-full my-0.5" />
+                  <button onClick={() => move(l.id, 1)} className="rounded-lg p-1 text-muted-foreground hover:bg-foreground hover:text-background transition-colors cursor-pointer" title="Move Down">
+                    <ChevronDown className="h-4 w-4" />
+                  </button>
+                </div>
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border-2 border-foreground bg-muted p-1">
+                    <LinkIcon url={l.url} className="h-6 w-6 object-contain" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <p className="truncate text-sm font-bold text-foreground">{l.title}</p>
+                      <button 
+                        onClick={() => {
+                          setEditingLinkId(l.id);
+                          setTempTitle(l.title);
+                          setTempUrl(l.url);
+                          setEditError("");
+                        }}
+                        className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full hover:bg-muted text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                        title="Edit link"
+                      >
+                        <Pencil className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                    <p className="truncate text-xs text-muted-foreground">{l.url}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="rounded-full bg-muted px-2 py-1 text-xs font-semibold">{formatCompactNumber(l.clicks)} clicks</span>
+                  {l.url !== "protected" ? (
+                    <a href={l.url} target="_blank" rel="noreferrer" className="grid h-8 w-8 place-items-center rounded-full hover:bg-muted" title="Open link">
+                      <ExternalLink className="h-4 w-4" />
+                    </a>
+                  ) : (
+                    <div className="grid h-8 w-8 place-items-center rounded-full opacity-30 cursor-not-allowed" title="Link is password protected">
+                      <Lock className="h-4 w-4" />
+                    </div>
+                  )}
+                  <button onClick={() => setLinkToDelete(l.id)} className="grid h-8 w-8 place-items-center rounded-full hover:bg-destructive/10 hover:text-destructive cursor-pointer"><Trash2 className="h-4 w-4" /></button>
+                </div>
               </div>
-            </div>
-            <ChevronRight className="h-5 w-5 text-foreground shrink-0" />
-          </Link>
+            );
+          })}
         </div>
       </Card>
-    );
-  }
+
+      {/* AI Tips Section below */}
+      {showAiTips && (
+        <div ref={aiTipsRef} className="w-[95%] mx-auto mt-8 rounded-3xl border-2 border-foreground bg-card p-5 sm:p-6 shadow-[0_8px_0_0_theme(colors.foreground)] scroll-mt-6 animate-fade-in relative">
+          <button 
+            onClick={() => setShowAiTips(false)}
+            className="absolute top-4 right-4 grid h-8 w-8 place-items-center rounded-full border-2 border-transparent hover:border-foreground hover:bg-muted text-muted-foreground hover:text-foreground transition-all cursor-pointer"
+            title="Close Tips"
+          >
+            <X className="h-4 w-4" />
+          </button>
+          <div className="flex items-center gap-2 mb-4 border-b-2 border-dashed border-foreground/10 pb-3 pr-10">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg border-2 border-foreground bg-blue-100 shrink-0">
+              <Sparkles className="h-4 w-4 stroke-[2.5] text-blue-700" />
+            </div>
+            <div className="min-w-0">
+              <h3 className="text-sm font-black uppercase tracking-wider text-foreground truncate">💡 Profile Optimization Tips</h3>
+              <p className="text-[10px] text-muted-foreground font-semibold truncate">AI-Generated suggestions to maximize your Linkonly CTR</p>
+            </div>
+          </div>
+
+          <div className="space-y-3.5">
+            {getAiTips(user.links, user, aiTipsSeed).map((tip, idx) => (
+              <div key={tip.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl border-2 border-foreground bg-background p-4 shadow-[3px_3px_0_0_theme(colors.foreground)] hover:-translate-y-0.5 transition-all">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-foreground text-[10px] font-bold text-background">
+                      {idx + 1}
+                    </span>
+                    <span className="text-sm font-bold text-foreground">{tip.title}</span>
+                    <span className={`rounded-full px-2 py-0.5 text-[9px] font-black uppercase border border-foreground ${
+                      tip.category === 'priority' ? 'bg-rose-100 text-rose-700' :
+                      tip.category === 'optimization' ? 'bg-emerald-100 text-emerald-700' :
+                      'bg-amber-100 text-amber-700'
+                    }`}>
+                      {tip.category}
+                    </span>
+                  </div>
+                  <p className="text-xs text-muted-foreground pl-7 leading-relaxed">{tip.description}</p>
+                </div>
+                
+                <div className="shrink-0 flex items-center justify-end pl-7 sm:pl-0">
+                  <span className="inline-block rounded-full border-2 border-foreground bg-blue-100 px-3 py-1 text-xs font-black text-blue-700 shadow-[2px_2px_0_0_theme(colors.foreground)]">
+                    {tip.impact}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Link Deletion Confirmation Popup */}
+      {linkToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4 animate-fade-in">
+          <div className="w-full max-w-sm rounded-3xl border-2 border-foreground bg-card p-6 shadow-[8px_8px_0_0_theme(colors.foreground)]">
+            <h2 className="text-xl font-bold font-display mb-2">Delete link</h2>
+            <p className="text-sm text-muted-foreground mb-6">Are you sure you want to delete this link? This action cannot be undone.</p>
+            <div className="flex gap-3">
+              <button 
+                onClick={() => setLinkToDelete(null)}
+                className="flex-1 rounded-full border-2 border-foreground bg-card px-4 py-2.5 text-sm font-semibold hover:bg-accent/30 transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={() => {
+                  remove(linkToDelete);
+                  setLinkToDelete(null);
+                }}
+                className="flex-1 rounded-full border-2 border-foreground bg-rose-500 px-4 py-2.5 text-sm font-bold text-white shadow-[2px_2px_0_0_theme(colors.foreground)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-none transition-all cursor-pointer"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }
+
+interface AnalyticsTabProps {
+  user: Profile;
+}
+
+function AnalyticsTab({ user }: AnalyticsTabProps) {
+  const totalClicks = useMemo(() => user.links.reduce((s, l) => s + (l.clicks || 0), 0), [user]);
+  const top = useMemo(() => [...user.links].sort((a, b) => b.clicks - a.clicks).slice(0, 5), [user]);
+
+  return (
+    <Card>
+      <SectionTitle title="Analytics" subtitle="Real numbers from your public profile." />
+      <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
+        <Stat label="Profile views" value={user.views} />
+        <Stat label="Total clicks" value={totalClicks} />
+        <Stat label="Links" value={user.links.length} />
+      </div>
+      <div className="mt-6">
+        <p className="mb-2 text-sm font-semibold">Top links</p>
+        {top.length === 0 && <p className="text-sm text-muted-foreground">No clicks yet. Share your link to get started.</p>}
+        <div className="space-y-2">
+          {top.map((l) => {
+            const pct = totalClicks ? Math.round((l.clicks / totalClicks) * 100) : 0;
+            return (
+              <div key={l.id} className="rounded-2xl border-2 border-foreground bg-card p-3">
+                <div className="flex items-center justify-between gap-3 text-sm">
+                  <span className="truncate font-semibold">{l.title}</span>
+                  <span className="text-xs font-bold text-muted-foreground">{formatCompactNumber(l.clicks)} clicks · {pct}%</span>
+                </div>
+                <div className="mt-2 h-2 overflow-hidden rounded-full bg-muted">
+                  <div className="h-full bg-foreground" style={{ width: `${pct}%` }} />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="mt-6 border-t-2 border-dashed border-foreground/10 pt-6">
+        <Link
+          to="/proanalytics"
+          className="flex items-center justify-between rounded-2xl border-2 border-foreground bg-card p-4 hover:bg-muted transition-all hover:-translate-y-0.5"
+        >
+          <div className="flex items-center gap-2.5">
+            <Crown className="h-5 w-5 text-amber-500 fill-amber-500 shrink-0 animate-pulse" />
+            <div className="text-left">
+              <p className="font-bold text-sm">Advance Analytics for premium users</p>
+              {!user.premium && (
+                <p className="text-xs text-muted-foreground mt-0.5">Unlock geo-tracking, custom referrers, and visitor device metrics.</p>
+              )}
+            </div>
+          </div>
+          <ChevronRight className="h-5 w-5 text-foreground shrink-0" />
+        </Link>
+      </div>
+    </Card>
+  );
+}
+
 
 function Tabs({ 
   tab, 
