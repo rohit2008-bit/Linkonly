@@ -7,7 +7,7 @@ import {
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
-import { useEffect, useState, useRef, type ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { AuthProvider } from "../lib/auth";
@@ -95,14 +95,17 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function MouseFollower() {
   const followerRef = useRef<HTMLDivElement | null>(null);
-  const [isHovered, setIsHovered] = useState(false);
+  // Use a ref instead of state so changing hover state does NOT
+  // re-run the effect and tear down/re-add all event listeners.
+  const isHoveredRef = useRef(false);
 
   useEffect(() => {
     const follower = followerRef.current;
     if (!follower) return;
 
     const handleMouseMove = (e: MouseEvent) => {
-      follower.style.transform = `translate3d(${e.clientX}px, ${e.clientY}px, 0) translate(-50%, -50%) scale(${isHovered ? 2.5 : 1})`;
+      // Read the ref value directly — always up-to-date, zero re-renders
+      follower.style.transform = `translate3d(${e.clientX}px, ${e.clientY}px, 0) translate(-50%, -50%) scale(${isHoveredRef.current ? 2.5 : 1})`;
       follower.style.opacity = "1";
     };
 
@@ -116,13 +119,14 @@ function MouseFollower() {
 
     const handleMouseOver = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
-      const isInteractive = 
-        target.tagName === "BUTTON" || 
-        target.tagName === "A" || 
-        target.closest("button") || 
-        target.closest("a") || 
+      const isInteractive =
+        target.tagName === "BUTTON" ||
+        target.tagName === "A" ||
+        target.closest("button") ||
+        target.closest("a") ||
         target.getAttribute("role") === "button";
-      setIsHovered(!!isInteractive);
+      // Update ref — no state change, no re-render, no listener teardown
+      isHoveredRef.current = !!isInteractive;
     };
 
     window.addEventListener("mousemove", handleMouseMove);
@@ -136,7 +140,7 @@ function MouseFollower() {
       document.removeEventListener("mouseenter", handleMouseEnter);
       window.removeEventListener("mouseover", handleMouseOver);
     };
-  }, [isHovered]);
+  }, []); // ← empty array: listeners are added ONCE and never torn down
 
   return (
     <div

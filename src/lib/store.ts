@@ -5,6 +5,8 @@ export type LinkItem = {
   title: string;
   url: string;
   clicks: number;
+  password_hash?: string;
+  isProtected?: boolean;
 };
 
 export function formatCompactNumber(num: number): string {
@@ -30,6 +32,10 @@ export type Theme = {
   font: "sans" | "display" | "italic" | "bebas" | "galindo" | "poppins" | "nunito" | "lato" | "oswald" | "raleway" | "montserrat" | "pacifico" | "dancing" | "lobster" | "righteous" | "ubuntu" | "merriweather" | "caveat" | "cinzel" | "aboreto" | "comfortaa" | "bungee" | "marker" | "gloria" | "dirt";
   nameFont?: "sans" | "display" | "italic" | "bebas" | "galindo" | "poppins" | "nunito" | "lato" | "oswald" | "raleway" | "montserrat" | "pacifico" | "dancing" | "lobster" | "righteous" | "ubuntu" | "merriweather" | "caveat" | "cinzel" | "aboreto" | "comfortaa" | "bungee" | "marker" | "gloria" | "dirt";
   bioFont?: "sans" | "display" | "italic" | "bebas" | "galindo" | "poppins" | "nunito" | "lato" | "oswald" | "raleway" | "montserrat" | "pacifico" | "dancing" | "lobster" | "righteous" | "ubuntu" | "merriweather" | "caveat" | "cinzel" | "aboreto" | "comfortaa" | "bungee" | "marker" | "gloria" | "dirt";
+  protection?: {
+    password_hash?: string;
+    lock_type?: "full" | "partial";
+  };
 };
 
 export type Profile = {
@@ -72,7 +78,20 @@ export const store = {
         console.error("Error getting profile:", error);
         return null;
       }
-      return data as Profile | null;
+      
+      const profile = data as Profile;
+      
+      // Scrub target URLs for protected links before returning to client
+      if (profile.links && Array.isArray(profile.links)) {
+        profile.links = profile.links.map(l => {
+          if (l.isProtected && l.password_hash) {
+            return { ...l, url: "protected" };
+          }
+          return l;
+        });
+      }
+      
+      return profile;
     } catch (e) {
       console.error(e);
       return null;
@@ -109,7 +128,7 @@ export const store = {
     }
   },
 
-  async trackView(username: string, ip?: string) {
+  async trackView(username: string, ip?: string, geoData?: { countryCode: string; countryName: string; device: string }) {
     try {
       const { data: profile } = await supabase
         .from("profiles")
@@ -123,7 +142,8 @@ export const store = {
           .update({ views: (profile.views || 0) + 1 })
           .eq("id", profile.id);
 
-        const visitor = await getVisitorDetails(ip);
+        // Use pre-fetched geo data if provided — avoids a second network call
+        const visitor = geoData ?? (await getVisitorDetails(ip));
         await supabase
           .from("analytics")
           .insert({
