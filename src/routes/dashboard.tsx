@@ -9,8 +9,9 @@ import { createServerFn } from "@tanstack/react-start";
 const getCloudinarySignature = createServerFn({ method: "GET" })
   .validator((timestamp: string) => timestamp)
   .handler(async ({ data: timestamp }) => {
-    const apiSecret = process.env.CLOUDINARY_API_SECRET || "a734KvYgyLfnDqcxRBiaESOusuM";
+    const apiSecret = process.env.CLOUDINARY_API_SECRET;
     const uploadPreset = process.env.VITE_CLOUDINARY_UPLOAD_PRESET || "profile_pics";
+    if (!apiSecret) throw new Error("CLOUDINARY_API_SECRET env var is not set.");
     const signatureStr = `timestamp=${timestamp}&upload_preset=${uploadPreset}${apiSecret}`;
     
     const crypto = await import("crypto");
@@ -23,9 +24,12 @@ const getCloudinarySignature = createServerFn({ method: "GET" })
 const deleteCloudinaryImage = createServerFn({ method: "POST" })
   .validator((publicId: string) => publicId)
   .handler(async ({ data: publicId }) => {
-    const cloudName = process.env.VITE_CLOUDINARY_CLOUD_NAME || "sovllrgj";
-    const apiKey = process.env.VITE_CLOUDINARY_API_KEY || "332665428766442";
-    const apiSecret = process.env.CLOUDINARY_API_SECRET || "a734KvYgyLfnDqcxRBiaESOusuM";
+    const cloudName = process.env.VITE_CLOUDINARY_CLOUD_NAME;
+    const apiKey = process.env.VITE_CLOUDINARY_API_KEY;
+    const apiSecret = process.env.CLOUDINARY_API_SECRET;
+    if (!cloudName || !apiKey || !apiSecret) {
+      throw new Error("Missing Cloudinary env vars (VITE_CLOUDINARY_CLOUD_NAME, VITE_CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET).");
+    }
     const timestamp = Math.round(Date.now() / 1000).toString();
 
     const crypto = await import("crypto");
@@ -508,26 +512,38 @@ function Dashboard() {
         <Card>
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-dashed border-foreground/10 pb-3 mb-2">
             <SectionTitle title="Your links" subtitle="Add unlimited links — they'll appear on your public profile." />
-            <button
-              type="button"
-              onClick={() => {
-                if (!user!.premium) {
-                  navigate({ to: "/pricing" });
-                  return;
-                }
-                if (!showAiTips) {
-                  setAiTipsSeed(s => s + 1);
-                }
-                setShowAiTips(true);
-                setTimeout(() => {
-                  aiTipsRef.current?.scrollIntoView({ behavior: 'smooth' });
-                }, 100);
-              }}
-              className="inline-flex items-center gap-1.5 rounded-full border-2 border-foreground bg-blue-100 px-3.5 py-1.5 text-xs font-black text-blue-700 shadow-[2px_2px_0_0_theme(colors.foreground)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-none transition-all cursor-pointer w-fit sm:self-center"
-            >
-              <Sparkles className="h-3.5 w-3.5 fill-blue-700 text-blue-700 animate-pulse animate-duration-1000" />
-              <span>Ai tips</span>
-            </button>
+            <div className="flex flex-wrap gap-2 sm:self-center">
+              <button
+                type="button"
+                onClick={() => {
+                  navigate({ to: "/setpassword" });
+                }}
+                className="inline-flex items-center gap-1.5 rounded-full border-2 border-foreground bg-rose-100 px-3.5 py-1.5 text-xs font-black text-rose-700 shadow-[2px_2px_0_0_theme(colors.foreground)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-none transition-all cursor-pointer w-fit"
+              >
+                <Lock className="h-4 w-4 text-rose-700 stroke-[2.5]" />
+                <span>Protect</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  if (!user!.premium) {
+                    navigate({ to: "/pricing" });
+                    return;
+                  }
+                  if (!showAiTips) {
+                    setAiTipsSeed(s => s + 1);
+                  }
+                  setShowAiTips(true);
+                  setTimeout(() => {
+                    aiTipsRef.current?.scrollIntoView({ behavior: 'smooth' });
+                  }, 100);
+                }}
+                className="inline-flex items-center gap-1.5 rounded-full border-2 border-foreground bg-blue-100 px-3.5 py-1.5 text-xs font-black text-blue-700 shadow-[2px_2px_0_0_theme(colors.foreground)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-none transition-all cursor-pointer w-fit"
+              >
+                <Sparkles className="h-3.5 w-3.5 fill-blue-700 text-blue-700 animate-pulse animate-duration-1000" />
+                <span>Ai tips</span>
+              </button>
+            </div>
           </div>
 
           <div className="mt-4 grid grid-cols-1 gap-2 rounded-2xl border-2 border-dashed border-foreground/30 p-3 sm:grid-cols-[1fr_1.4fr_auto]">
@@ -678,7 +694,7 @@ function Dashboard() {
 
         {/* AI Tips Section below */}
         {showAiTips && (
-          <div ref={aiTipsRef} className="mt-8 rounded-3xl border-2 border-foreground bg-card p-5 sm:p-6 shadow-[0_8px_0_0_theme(colors.foreground)] scroll-mt-6 animate-fade-in relative">
+          <div ref={aiTipsRef} className="w-[95%] mx-auto mt-8 rounded-3xl border-2 border-foreground bg-card p-5 sm:p-6 shadow-[0_8px_0_0_theme(colors.foreground)] scroll-mt-6 animate-fade-in relative">
             <button 
               onClick={() => setShowAiTips(false)}
               className="absolute top-4 right-4 grid h-8 w-8 place-items-center rounded-full border-2 border-transparent hover:border-foreground hover:bg-muted text-muted-foreground hover:text-foreground transition-all cursor-pointer"
@@ -790,7 +806,7 @@ function Dashboard() {
           <SectionTitle title="Customize theme" subtitle="Colors, buttons, and vibe. Premium unlocks all presets." />
           <Link
             to="/builtinthemes"
-            className="inline-flex items-center gap-1.5 rounded-full border-2 border-foreground bg-amber-400 px-4 py-2 text-xs font-black text-foreground shadow-[2px_2px_0_0_theme(colors.foreground)] hover:-translate-y-0.5 transition-all active:translate-y-0 active:shadow-none"
+            className="inline-flex items-center gap-1.5 rounded-full border-2 border-foreground bg-primary px-4 py-2 text-xs font-black text-foreground shadow-[2px_2px_0_0_theme(colors.foreground)] hover:bg-amber-400 hover:-translate-y-0.5 transition-all active:translate-y-0 active:shadow-none"
           >
             <Sparkles className="h-3.5 w-3.5" /> Explore theme
           </Link>
@@ -1224,11 +1240,11 @@ function ProfileTab({ user, update, localName, setLocalName, localBio, setLocalB
     if (!cleanName) {
       return "Display Name cannot be empty or blank.";
     }
-    if (cleanName.length > 30) {
-      return "Display Name cannot exceed 30 characters.";
+    if (cleanName.length > 20) {
+      return "Display Name cannot exceed 20 characters.";
     }
-    if (!/^[a-zA-Z\s]+$/.test(cleanName)) {
-      return "Display Name can only contain letters and spaces (numbers and special characters are not allowed).";
+    if (!/^[a-zA-Z0-9\s]+$/.test(cleanName)) {
+      return "Display Name can only contain letters, numbers, and spaces (no emojis or special characters).";
     }
 
     if (!cleanBio) {
@@ -1302,9 +1318,14 @@ function ProfileTab({ user, update, localName, setLocalName, localBio, setLocalB
 
   const onUpload = async (f: File) => {
     setUploadingAvatar(true);
-    const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || "sovllrgj";
-    const apiKey = import.meta.env.VITE_CLOUDINARY_API_KEY || "332665428766442";
+    const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
+    const apiKey = import.meta.env.VITE_CLOUDINARY_API_KEY;
     const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET || "profile_pics";
+    if (!cloudName || !apiKey) {
+      console.error("Missing Cloudinary env vars on client.");
+      setUploadingAvatar(false);
+      return;
+    }
 
     // Capture old avatar URL before uploading new one
     const oldAvatarUrl = user!.avatar || "";
@@ -1460,10 +1481,14 @@ function ProfileTab({ user, update, localName, setLocalName, localBio, setLocalB
             <User className="h-4 w-4 text-muted-foreground mr-2 shrink-0" />
             <input 
               value={localName} 
-              onChange={(e) => setLocalName(e.target.value)} 
+              onChange={(e) => setLocalName(e.target.value.slice(0, 20))}
+              maxLength={20}
               className="w-full bg-transparent py-2.5 text-sm outline-none" 
               placeholder="e.g. Harsh Pawar"
             />
+            <span className="text-[10px] font-bold text-muted-foreground ml-2 shrink-0">
+              {localName.length}/20
+            </span>
           </div>
         </Labeled>
         
