@@ -17,6 +17,7 @@ import { Route as ExplorepricingRouteImport } from './routes/explorepricing'
 import { Route as PlandetailRouteImport } from './routes/plandetail'
 import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as ProanalyticsRouteImport } from './routes/proanalytics'
+import { Route as SetpasswordRouteImport } from './routes/setpassword'
 import { Route as AuthModeRouteImport } from './routes/auth.$mode'
 
 const IndexRoute = IndexRouteImport.update({
@@ -59,6 +60,11 @@ const ProanalyticsRoute = ProanalyticsRouteImport.update({
   path: '/proanalytics',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SetpasswordRoute = SetpasswordRouteImport.update({
+  id: '/setpassword',
+  path: '/setpassword',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthModeRoute = AuthModeRouteImport.update({
   id: '/auth/$mode',
   path: '/auth/$mode',
@@ -74,6 +80,7 @@ export interface FileRoutesByFullPath {
   '/plandetail': typeof PlandetailRoute
   '/pricing': typeof PricingRoute
   '/proanalytics': typeof ProanalyticsRoute
+  '/setpassword': typeof SetpasswordRoute
   '/auth/$mode': typeof AuthModeRoute
 }
 export interface FileRoutesByTo {
@@ -85,6 +92,7 @@ export interface FileRoutesByTo {
   '/plandetail': typeof PlandetailRoute
   '/pricing': typeof PricingRoute
   '/proanalytics': typeof ProanalyticsRoute
+  '/setpassword': typeof SetpasswordRoute
   '/auth/$mode': typeof AuthModeRoute
 }
 export interface FileRoutesById {
@@ -97,6 +105,7 @@ export interface FileRoutesById {
   '/plandetail': typeof PlandetailRoute
   '/pricing': typeof PricingRoute
   '/proanalytics': typeof ProanalyticsRoute
+  '/setpassword': typeof SetpasswordRoute
   '/auth/$mode': typeof AuthModeRoute
 }
 export interface FileRouteTypes {
@@ -110,6 +119,7 @@ export interface FileRouteTypes {
     | '/plandetail'
     | '/pricing'
     | '/proanalytics'
+    | '/setpassword'
     | '/auth/$mode'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -121,6 +131,7 @@ export interface FileRouteTypes {
     | '/plandetail'
     | '/pricing'
     | '/proanalytics'
+    | '/setpassword'
     | '/auth/$mode'
   id:
     | '__root__'
@@ -132,6 +143,7 @@ export interface FileRouteTypes {
     | '/plandetail'
     | '/pricing'
     | '/proanalytics'
+    | '/setpassword'
     | '/auth/$mode'
   fileRoutesById: FileRoutesById
 }
@@ -144,6 +156,7 @@ export interface RootRouteChildren {
   PlandetailRoute: typeof PlandetailRoute
   PricingRoute: typeof PricingRoute
   ProanalyticsRoute: typeof ProanalyticsRoute
+  SetpasswordRoute: typeof SetpasswordRoute
   AuthModeRoute: typeof AuthModeRoute
 }
 
@@ -205,6 +218,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProanalyticsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/setpassword': {
+      id: '/setpassword'
+      path: '/setpassword'
+      fullPath: '/setpassword'
+      preLoaderRoute: typeof SetpasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/auth/$mode': {
       id: '/auth/$mode'
       path: '/auth/$mode'
@@ -224,6 +244,7 @@ const rootRouteChildren: RootRouteChildren = {
   PlandetailRoute: PlandetailRoute,
   PricingRoute: PricingRoute,
   ProanalyticsRoute: ProanalyticsRoute,
+  SetpasswordRoute: SetpasswordRoute,
   AuthModeRoute: AuthModeRoute,
 }
 export const routeTree = rootRouteImport
