@@ -281,6 +281,7 @@ function PublicProfile() {
               <button 
                 onClick={() => setActiveLinkLock(null)}
                 className="absolute top-4 right-4 p-2 opacity-50 hover:opacity-100"
+                aria-label="Close"
               >
                 ✕
               </button>

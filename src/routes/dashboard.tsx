@@ -256,13 +256,18 @@ function Dashboard() {
   const [shakeTabId, setShakeTabId] = useState<string | null>(null);
   const [warningText, setWarningText] = useState("");
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [showAiTips, setShowAiTips] = useState(false);
+  const [aiTipsSeed, setAiTipsSeed] = useState(0);
+  const aiTipsRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (ready && !user) navigate({ to: "/auth/$mode", params: { mode: "login" } });
   }, [ready, user, navigate]);
 
+  const hasLoadedRef = useRef(false);
+
   useEffect(() => {
-    if (user) {
+    if (user && !hasLoadedRef.current) {
       setLocalTheme(user.theme);
       setLocalName(user.name || "");
       setLocalBio(user.bio || "");
@@ -271,6 +276,7 @@ function Dashboard() {
       if (!user.name?.trim() || !user.bio?.trim()) {
         setTab("profile");
       }
+      hasLoadedRef.current = true;
     }
   }, [user]);
 
@@ -349,7 +355,17 @@ function Dashboard() {
                 )}
               </div>
               <div className="mt-4">
-                {tab === "links" && <LinksTab user={user} update={update} />}
+                {tab === "links" && (
+                  <LinksTab 
+                    user={user} 
+                    update={update} 
+                    showAiTips={showAiTips}
+                    setShowAiTips={setShowAiTips}
+                    aiTipsSeed={aiTipsSeed}
+                    setAiTipsSeed={setAiTipsSeed}
+                    aiTipsRef={aiTipsRef}
+                  />
+                )}
                 {tab === "profile" && (
                   <ProfileTab 
                     user={user} 
@@ -373,6 +389,57 @@ function Dashboard() {
             <PhonePreview />
           </div>
         </div>
+
+        {showAiTips && (
+          <div ref={aiTipsRef} className="mt-8 rounded-3xl border-2 border-foreground bg-card p-5 sm:p-6 shadow-[0_8px_0_0_theme(colors.foreground)] scroll-mt-6 animate-fade-in relative">
+            <button 
+              onClick={() => setShowAiTips(false)}
+              className="absolute top-4 right-4 grid h-8 w-8 place-items-center rounded-full border-2 border-transparent hover:border-foreground hover:bg-muted text-muted-foreground hover:text-foreground transition-all cursor-pointer"
+              title="Close Tips"
+            >
+              <X className="h-4 w-4" />
+            </button>
+            <div className="flex items-center gap-2 mb-4 border-b-2 border-dashed border-foreground/10 pb-3 pr-10">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg border-2 border-foreground bg-blue-100 shrink-0">
+                <Sparkles className="h-4 w-4 stroke-[2.5] text-blue-700" />
+              </div>
+              <div className="min-w-0">
+                <h3 className="text-sm font-black uppercase tracking-wider text-foreground truncate">💡 Profile Optimization Tips</h3>
+                <p className="text-[10px] text-muted-foreground font-semibold truncate">AI-Generated suggestions to maximize your Linkonly CTR</p>
+              </div>
+            </div>
+
+            <div className="space-y-3.5">
+              {getAiTips(user!.links, user, aiTipsSeed).map((tip, idx) => (
+                <div key={tip.id} className="flex flex-col gap-3 rounded-2xl border-2 border-foreground bg-background p-4 shadow-[3px_3px_0_0_theme(colors.foreground)] hover:-translate-y-0.5 transition-all">
+                  <div className="flex flex-col gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-foreground text-[10px] font-bold text-background">
+                        {idx + 1}
+                      </span>
+                      <span className="text-sm font-bold text-foreground">{tip.title}</span>
+                      <span className={`rounded-full px-2 py-0.5 text-[9px] font-black uppercase border border-foreground shrink-0 ${
+                        tip.category === 'priority' ? 'bg-rose-100 text-rose-700' :
+                        tip.category === 'optimization' ? 'bg-emerald-100 text-emerald-700' :
+                        'bg-amber-100 text-amber-700'
+                      }`}>
+                        {tip.category}
+                      </span>
+                    </div>
+                    <p className="text-xs text-muted-foreground leading-relaxed pl-7">{tip.description}</p>
+                  </div>
+                  
+                  <div className="flex items-center justify-between sm:justify-end gap-2 border-t border-dashed border-foreground/10 pt-3 sm:border-none sm:pt-0 pl-7 sm:pl-0">
+                    <span className="text-[10px] font-bold text-muted-foreground sm:hidden">Est. Impact:</span>
+                    <span className="inline-block rounded-full border-2 border-foreground bg-blue-100 px-3 py-1 text-xs font-black text-blue-700 shadow-[2px_2px_0_0_theme(colors.foreground)]">
+                      {tip.impact}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Logout Confirmation Popup */}
@@ -596,9 +663,14 @@ function Dashboard() {
 interface LinksTabProps {
   user: Profile;
   update: (patch: Partial<Profile>) => Promise<void>;
+  showAiTips: boolean;
+  setShowAiTips: (show: boolean) => void;
+  aiTipsSeed: number;
+  setAiTipsSeed: React.Dispatch<React.SetStateAction<number>>;
+  aiTipsRef: React.RefObject<HTMLDivElement | null>;
 }
 
-function LinksTab({ user, update }: LinksTabProps) {
+function LinksTab({ user, update, showAiTips, setShowAiTips, aiTipsSeed, setAiTipsSeed, aiTipsRef }: LinksTabProps) {
   const navigate = useNavigate();
   const [title, setTitle] = useState("");
   const [url, setUrl] = useState("");
@@ -607,10 +679,7 @@ function LinksTab({ user, update }: LinksTabProps) {
   const [tempTitle, setTempTitle] = useState("");
   const [tempUrl, setTempUrl] = useState("");
   const [editError, setEditError] = useState("");
-  const [showAiTips, setShowAiTips] = useState(false);
-  const [aiTipsSeed, setAiTipsSeed] = useState(0);
   const [linkToDelete, setLinkToDelete] = useState<string | null>(null);
-  const aiTipsRef = useRef<HTMLDivElement | null>(null);
 
   const add = () => {
     setError("");
@@ -826,7 +895,7 @@ function LinksTab({ user, update }: LinksTabProps) {
                 <div className="flex items-center gap-1.5">
                   <span className="rounded-full bg-muted px-2 py-1 text-xs font-semibold">{formatCompactNumber(l.clicks)} clicks</span>
                   {l.url !== "protected" ? (
-                    <a href={l.url} target="_blank" rel="noreferrer" className="grid h-8 w-8 place-items-center rounded-full hover:bg-muted" title="Open link">
+                    <a href={l.url} target="_blank" rel="noreferrer" className="grid h-8 w-8 place-items-center rounded-full hover:bg-muted" title="Open link" aria-label={`Open ${l.title}`}>
                       <ExternalLink className="h-4 w-4" />
                     </a>
                   ) : (
@@ -842,56 +911,7 @@ function LinksTab({ user, update }: LinksTabProps) {
         </div>
       </Card>
 
-      {/* AI Tips Section below */}
-      {showAiTips && (
-        <div ref={aiTipsRef} className="w-[95%] mx-auto mt-8 rounded-3xl border-2 border-foreground bg-card p-5 sm:p-6 shadow-[0_8px_0_0_theme(colors.foreground)] scroll-mt-6 animate-fade-in relative">
-          <button 
-            onClick={() => setShowAiTips(false)}
-            className="absolute top-4 right-4 grid h-8 w-8 place-items-center rounded-full border-2 border-transparent hover:border-foreground hover:bg-muted text-muted-foreground hover:text-foreground transition-all cursor-pointer"
-            title="Close Tips"
-          >
-            <X className="h-4 w-4" />
-          </button>
-          <div className="flex items-center gap-2 mb-4 border-b-2 border-dashed border-foreground/10 pb-3 pr-10">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg border-2 border-foreground bg-blue-100 shrink-0">
-              <Sparkles className="h-4 w-4 stroke-[2.5] text-blue-700" />
-            </div>
-            <div className="min-w-0">
-              <h3 className="text-sm font-black uppercase tracking-wider text-foreground truncate">💡 Profile Optimization Tips</h3>
-              <p className="text-[10px] text-muted-foreground font-semibold truncate">AI-Generated suggestions to maximize your Linkonly CTR</p>
-            </div>
-          </div>
 
-          <div className="space-y-3.5">
-            {getAiTips(user.links, user, aiTipsSeed).map((tip, idx) => (
-              <div key={tip.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl border-2 border-foreground bg-background p-4 shadow-[3px_3px_0_0_theme(colors.foreground)] hover:-translate-y-0.5 transition-all">
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-foreground text-[10px] font-bold text-background">
-                      {idx + 1}
-                    </span>
-                    <span className="text-sm font-bold text-foreground">{tip.title}</span>
-                    <span className={`rounded-full px-2 py-0.5 text-[9px] font-black uppercase border border-foreground ${
-                      tip.category === 'priority' ? 'bg-rose-100 text-rose-700' :
-                      tip.category === 'optimization' ? 'bg-emerald-100 text-emerald-700' :
-                      'bg-amber-100 text-amber-700'
-                    }`}>
-                      {tip.category}
-                    </span>
-                  </div>
-                  <p className="text-xs text-muted-foreground pl-7 leading-relaxed">{tip.description}</p>
-                </div>
-                
-                <div className="shrink-0 flex items-center justify-end pl-7 sm:pl-0">
-                  <span className="inline-block rounded-full border-2 border-foreground bg-blue-100 px-3 py-1 text-xs font-black text-blue-700 shadow-[2px_2px_0_0_theme(colors.foreground)]">
-                    {tip.impact}
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
 
       {/* Link Deletion Confirmation Popup */}
       {linkToDelete && (
@@ -1669,7 +1689,7 @@ function ProfileTab({ user, update, localName, setLocalName, localBio, setLocalB
             </button>
             
             {isFontDropdownOpen && (
-              <div className="absolute left-0 right-0 mt-2 max-h-[168px] overflow-y-auto rounded-2xl border-2 border-foreground bg-card p-1.5 shadow-[0_6px_0_0_theme(colors.foreground)] z-[100] animate-in fade-in slide-in-from-top-2 duration-150">
+              <div className="relative sm:absolute left-0 right-0 mt-2 max-h-[200px] overflow-y-auto rounded-2xl border-2 border-foreground bg-card p-1.5 shadow-[0_6px_0_0_theme(colors.foreground)] z-[100] animate-in fade-in slide-in-from-top-2 duration-150">
                 {fontOptions.map((opt) => (
                   <button
                     key={opt.value}
@@ -1708,14 +1728,6 @@ function ProfileTab({ user, update, localName, setLocalName, localBio, setLocalB
               </div>
             )}
           </div>
-          <button
-            type="button"
-            onClick={() => navigate({ to: "/plandetail" })}
-            className="mt-3 inline-flex w-full items-center justify-between gap-2 rounded-full border-2 border-foreground bg-lime-400 px-4 py-2.5 text-xs font-black text-foreground shadow-[3px_3px_0_0_theme(colors.foreground)] transition-all hover:-translate-y-0.5 hover:bg-lime-300 active:translate-y-0 active:shadow-none"
-          >
-            <span>check my plan details</span>
-            <FileText className="h-4 w-4 shrink-0" />
-          </button>
         </Labeled>
 
         <Labeled label="Bio Font">
@@ -1736,7 +1748,7 @@ function ProfileTab({ user, update, localName, setLocalName, localBio, setLocalB
             </button>
             
             {isBioFontDropdownOpen && (
-              <div className="absolute left-0 right-0 mt-2 max-h-[168px] overflow-y-auto rounded-2xl border-2 border-foreground bg-card p-1.5 shadow-[0_6px_0_0_theme(colors.foreground)] z-[100] animate-in fade-in slide-in-from-top-2 duration-150">
+              <div className="relative sm:absolute left-0 right-0 mt-2 max-h-[200px] overflow-y-auto rounded-2xl border-2 border-foreground bg-card p-1.5 shadow-[0_6px_0_0_theme(colors.foreground)] z-[100] animate-in fade-in slide-in-from-top-2 duration-150">
                 {fontOptions.map((opt) => (
                   <button
                     key={opt.value}
@@ -1777,6 +1789,15 @@ function ProfileTab({ user, update, localName, setLocalName, localBio, setLocalB
           </div>
         </Labeled>
       </div>
+
+      <button
+        type="button"
+        onClick={() => navigate({ to: "/plandetail" })}
+        className="mt-3 inline-flex w-full items-center justify-between gap-2 rounded-full border-2 border-foreground bg-lime-400 px-4 py-2.5 text-xs font-black text-foreground shadow-[3px_3px_0_0_theme(colors.foreground)] transition-all hover:-translate-y-0.5 hover:bg-lime-300 active:translate-y-0 active:shadow-none"
+      >
+        <span>check my plan details</span>
+        <FileText className="h-4 w-4 shrink-0" />
+      </button>
 
       {!user!.premium && (
         <div className="mt-3 flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">

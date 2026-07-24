@@ -51,17 +51,32 @@ function ProAnalyticsPage() {
     const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
     const dayMap = days.map((day) => ({ day, views: 0, clicks: 0 }));
     
+    // Calculate start of current week (Monday 00:00:00 local time)
+    const now = new Date();
+    const currentDay = now.getDay();
+    const diff = now.getDate() - currentDay + (currentDay === 0 ? -6 : 1);
+    const startOfWeek = new Date(now.setDate(diff));
+    startOfWeek.setHours(0, 0, 0, 0);
+
+    // Calculate end of current week (Sunday 23:59:59.999 local time)
+    const endOfWeek = new Date(startOfWeek);
+    endOfWeek.setDate(startOfWeek.getDate() + 6);
+    endOfWeek.setHours(23, 59, 59, 999);
+    
     logs.forEach((log) => {
       if (!log.created_at) return;
-      const date = new Date(log.created_at);
-      const dayIndex = date.getDay(); // 0 = Sun, 1 = Mon ... 6 = Sat
+      const logDate = new Date(log.created_at);
       
-      const idx = dayIndex === 0 ? 6 : dayIndex - 1;
-      
-      if (log.type === "view") {
-        dayMap[idx].views++;
-      } else if (log.type === "click") {
-        dayMap[idx].clicks++;
+      // Only aggregate if within the current week
+      if (logDate >= startOfWeek && logDate <= endOfWeek) {
+        const dayIndex = logDate.getDay(); // 0 = Sun, 1 = Mon ... 6 = Sat
+        const idx = dayIndex === 0 ? 6 : dayIndex - 1;
+        
+        if (log.type === "view") {
+          dayMap[idx].views++;
+        } else if (log.type === "click") {
+          dayMap[idx].clicks++;
+        }
       }
     });
     return dayMap;
@@ -191,17 +206,17 @@ function ProAnalyticsPage() {
         )}
 
         {/* Header bar */}
-        <div className="flex items-center justify-between border-b-2 border-foreground bg-card p-4 rounded-2xl mb-6 shadow-[0_4px_0_0_theme(colors.foreground)]">
-          <div className="flex items-center gap-2">
-            <BarChart3 className="h-5 w-5 text-primary" />
-            <h1 className="text-xl font-bold">Pro Analytics</h1>
-            <span className="flex items-center gap-1 rounded-full bg-amber-500/10 px-2.5 py-0.5 text-[10px] font-bold text-amber-600 border border-amber-500/20">
+        <div className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between border-b-2 border-foreground bg-card p-4 rounded-2xl mb-6 shadow-[0_4px_0_0_theme(colors.foreground)]">
+          <div className="flex items-center gap-2 flex-wrap">
+            <BarChart3 className="h-5 w-5 text-primary shrink-0" />
+            <h1 className="text-lg sm:text-xl font-bold whitespace-nowrap">Pro Analytics</h1>
+            <span className="flex items-center gap-1 rounded-full bg-amber-500/10 px-2.5 py-0.5 text-[10px] font-bold text-amber-600 border border-amber-500/20 shrink-0">
               <Crown className="h-3 w-3 fill-amber-500 text-amber-500" /> PRO
             </span>
           </div>
           <Link
             to="/dashboard"
-            className="inline-flex items-center gap-1 rounded-full border-2 border-foreground bg-card px-4 py-2 text-xs font-bold hover:bg-muted transition-transform hover:-translate-y-0.5"
+            className="inline-flex items-center justify-center gap-1 rounded-full border-2 border-foreground bg-card px-4 py-2 text-xs font-bold hover:bg-muted transition-transform hover:-translate-y-0.5 w-full sm:w-auto whitespace-nowrap"
           >
             <ChevronLeft className="h-4 w-4" /> Back to Dashboard
           </Link>

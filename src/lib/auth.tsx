@@ -193,7 +193,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .eq("id", authUser.id);
 
       if (!error) {
-        setUser((prev) => (prev ? { ...prev, ...patch } : null));
+        setUser((prev) => (prev ? { ...prev, ...updatePatch } : null));
       } else {
         console.error("Error updating profile:", error);
       }
